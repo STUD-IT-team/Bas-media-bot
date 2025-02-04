@@ -1,0 +1,56 @@
+services:
+    bot-bas:
+        container_name: bot-bas
+        depends_on: 
+            task-migrator-bas:
+                condition: service_completed_successfully
+        build:
+            context: ../
+            dockerfile: ./src/Dockerfile
+        restart: always
+        ports: 
+            - "3012:3012"
+        networks:
+            - postgres-bas
+        env_file:
+            - app.env
+        volumes:
+            - ../data/img:/img
+
+    db-bas:
+        container_name: db-bas
+        hostname: db-bas
+        image: postgres:14.8-alpine3.18
+        command:
+            - "postgres"
+        env_file:
+            - postgres.env
+        volumes:
+            - ../data/db-data:/var/lib/postgresql/data
+        ports:
+            - "5433:5432"
+        restart: always
+        deploy:
+            resources:
+                limits:
+                    cpus: '1'
+                    memory: 4G
+        networks:
+            - postgres-bas
+
+    migrator-bas:
+        container_name: migrator-bas
+        depends_on: 
+            db-bas:
+                condition: service_started
+        env_file:
+            - migrator.env
+        build:
+            context: ../migrations
+            dockerfile: Dockerfile
+        networks:
+            - postgres-bas
+
+networks:
+    postgres-bas:
+        name: postgres-bas

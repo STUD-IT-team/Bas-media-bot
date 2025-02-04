@@ -27,3 +27,33 @@
 │   └── gen_requirements.sh
 └── src
 ```
+
+## app.env
+
+```
+BOT_TOKEN
+DB_HOST
+DB_USER
+DB_PASSWORD
+DB_NAME
+DB_PORT
+SPREADSHEET_ID
+```
+
+## migrator.env
+
+```
+DB_HOST
+DB_USER
+DB_PASSWORD
+DB_NAME
+```
+
+## postgrs.env
+
+```
+POSTGRES_HOST
+POSTGRES_USER
+POSTGRES_PASSWORD
+POSTGRES_DB
+```
