@@ -1,21 +1,21 @@
 services:
-    bot-bas:
-        container_name: bot-bas
-        depends_on: 
-            task-migrator-bas:
-                condition: service_completed_successfully
-        build:
-            context: ../
-            dockerfile: ./src/Dockerfile
-        restart: always
-        ports: 
-            - "3012:3012"
-        networks:
-            - postgres-bas
-        env_file:
-            - app.env
-        volumes:
-            - ../data/img:/img
+    # bot-bas:
+    #     container_name: bot-bas
+    #     depends_on: 
+    #         task-migrator-bas:
+    #             condition: service_completed_successfully
+    #     build:
+    #         context: ../
+    #         dockerfile: ./src/Dockerfile
+    #     restart: always
+    #     ports: 
+    #         - "3012:3012"
+    #     networks:
+    #         - postgres-bas
+    #     env_file:
+    #         - app.env
+    #     volumes:
+    #         - ../data/img:/img
 
     db-bas:
         container_name: db-bas
