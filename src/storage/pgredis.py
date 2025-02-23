@@ -20,6 +20,7 @@ class RedisCredentials(BaseModel):
     port : int
     user : str
     password : str
+    db : int
 
 class PgRedisStorage(BaseStorage):
     def __init__(self, pgcred: PostgresCredentials, redCred: RedisCredentials):
@@ -30,6 +31,7 @@ class PgRedisStorage(BaseStorage):
             port=redCred.port,
             username=redCred.user,
             password=redCred.password,
+            db=redCred.db,
             decode_responses=True
         )
 

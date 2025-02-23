@@ -33,8 +33,7 @@ async def UnknownMessage(message : Message, storage : BaseStorage, state : FSMCo
         await message.answer(f"Внутренняя ошибка сервера {str(e)}")
         return
     
-    # TODO: получение админа из базы
-    if activist is None:
+    if activist is None or not activist.Valid:
         await message.answer("Не могу найти вас в своих базах, если это ошибка - напишите администратору")
         return
     elif admin is None:
