@@ -81,7 +81,7 @@
       "containerId": null,
       "originalText": "/start\n",
       "lineHeight": 1.25,
-      "baseline": 76
+      "baseline": 77
     },
     {
       "type": "rectangle",
@@ -257,7 +257,7 @@
       "containerId": "I8t7eVdFlE9eic9_tU9RM",
       "originalText": "По какому мероприятию?<клавиатура с назначенными мероприятиями>",
       "lineHeight": 1.25,
-      "baseline": 195
+      "baseline": 194
     },
     {
       "type": "arrow",
@@ -391,7 +391,7 @@
       "containerId": null,
       "originalText": "Составить отчёт",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -559,7 +559,7 @@
       "containerId": null,
       "originalText": "Выбранное меро",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -735,7 +735,7 @@
       "containerId": null,
       "originalText": "Выбран вид отчёта",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "arrow",
@@ -887,7 +887,7 @@
       "containerId": null,
       "originalText": "Отмена",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "arrow",
@@ -1039,7 +1039,7 @@
       "containerId": null,
       "originalText": "Некорректная ссылка",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -1307,7 +1307,7 @@
       "containerId": "YVBHKXsw8wj8Q4TzbfH7g",
       "originalText": "Напоминание: на вас назначено мероприятие <название> <дата и время> через <1 день/3 дня>",
       "lineHeight": 1.25,
-      "baseline": 195
+      "baseline": 194
     },
     {
       "type": "rectangle",
@@ -1381,7 +1381,7 @@
       "containerId": "ded0-L4WbuIKXQ889Y4ZE",
       "originalText": "<Повтор последнего сообщения с клавиатурой>",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "arrow",
@@ -1520,7 +1520,7 @@
       "containerId": null,
       "originalText": "До мероприятия 1 или 3 дня",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -1721,7 +1721,7 @@
       "containerId": "QMO2pg2GrBD4Ve4Yw_KAB",
       "originalText": "<Повтор последнего сообщения с клавиатурой>",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "arrow",
@@ -1811,7 +1811,7 @@
       "containerId": null,
       "originalText": "Назначили новое мероприятие",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -1853,8 +1853,8 @@
     },
     {
       "type": "text",
-      "version": 390,
-      "versionNonce": 1841232550,
+      "version": 391,
+      "versionNonce": 1740307086,
       "isDeleted": false,
       "id": "kHP4CEBdIPZEgFiwJQU9I",
       "fillStyle": "solid",
@@ -1863,29 +1863,29 @@
       "roughness": 1,
       "opacity": 100,
       "angle": 0,
-      "x": -323.82777777777846,
+      "x": -318.44476996527845,
       "y": 2494.0833333333326,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
-      "width": 528.6,
+      "width": 517.833984375,
       "height": 135,
       "seed": 1497724410,
       "groupIds": [],
       "frameId": "PrSE9MyFBv6JQSlOGtQQI",
       "roundness": null,
       "boundElements": [],
-      "updated": 1738004813899,
+      "updated": 1740243912093,
       "link": null,
       "locked": false,
       "fontSize": 36,
       "fontFamily": 5,
-      "text": "Не могу найти вас в своих\nбазах, если это ошибка -\nнапишите <Ссылка на админа>",
+      "text": "Не могу найти вас в своих базах, \nесли это ошибка - напишите \n<Ссылка на админа>",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "hGPy6V9lqHIEa_7Q34yde",
       "originalText": "Не могу найти вас в своих базах, если это ошибка - напишите <Ссылка на админа>",
       "lineHeight": 1.25,
-      "baseline": 121
+      "baseline": 122
     },
     {
       "type": "arrow",
@@ -2121,7 +2121,7 @@
       "containerId": null,
       "originalText": "Любое сообщение",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "frame",
@@ -2263,7 +2263,7 @@
       "containerId": "XEr8xIdSqPFjKXuICqztd",
       "originalText": "Админ - <имя> <фамилия>.\nЧто хотите сделать?",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "arrow",
@@ -2348,7 +2348,7 @@
       "containerId": null,
       "originalText": "\\start",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -2426,7 +2426,7 @@
       "containerId": "wo7Jwb8E9Wr6-3DODxW7T",
       "originalText": "Введите название мероприятия",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "rectangle",
@@ -2508,7 +2508,7 @@
       "containerId": "EImxP5APKV4k91NE0nOPh",
       "originalText": "Введите дату в формате <формат> ",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "rectangle",
@@ -2750,7 +2750,7 @@
       "containerId": "2kinfucPuPU9Na0n-L6Ry",
       "originalText": "Ваши мероприятия:\n- <название1> - <дата1>\nКоличество фото: <количество1.1>\nКоличество видео: <количество1.2>\n- <название2> - <дата2>\nКоличество фото: <количество2.1>\nКоличество видео: <количество2.2>\n...",
       "lineHeight": 1.25,
-      "baseline": 405
+      "baseline": 404
     },
     {
       "type": "text",
@@ -2786,7 +2786,7 @@
       "containerId": null,
       "originalText": "Информация о мероприятиях",
       "lineHeight": 1.25,
-      "baseline": 76
+      "baseline": 77
     },
     {
       "type": "rectangle",
@@ -2868,7 +2868,7 @@
       "containerId": "VticPgdTvZufW5SV0DsTv",
       "originalText": "Выберите активистов <Клавиатура с активистами>",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "rectangle",
@@ -3008,40 +3008,40 @@
       ]
     },
     {
-      "id": "UHnTuQFlFXd9sUdndt28B",
       "type": "text",
-      "x": 4528.311740451387,
-      "y": 181.21666666666607,
-      "width": 389.654296875,
-      "height": 41.4,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 25,
+      "versionNonce": 1063763217,
+      "isDeleted": false,
+      "id": "UHnTuQFlFXd9sUdndt28B",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 4528.311740451387,
+      "y": 181.21666666666607,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 389.654296875,
+      "height": 41.4,
+      "seed": 1657547071,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": null,
-      "seed": 1657547071,
-      "version": 25,
-      "versionNonce": 1063763217,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738586027359,
       "link": null,
       "locked": false,
-      "text": "Добавить мероприятие",
       "fontSize": 36,
       "fontFamily": 2,
+      "text": "Добавить мероприятие",
       "textAlign": "center",
       "verticalAlign": "middle",
-      "baseline": 33,
       "containerId": "XLuLgXkj6clFYGwVp6aNX",
       "originalText": "Добавить мероприятие",
-      "lineHeight": 1.15
+      "lineHeight": 1.15,
+      "baseline": 33
     },
     {
       "type": "arrow",
@@ -3400,7 +3400,7 @@
       "containerId": null,
       "originalText": "Некорректный формат или дата\n",
       "lineHeight": 1.25,
-      "baseline": 76
+      "baseline": 77
     },
     {
       "type": "text",
@@ -3436,7 +3436,7 @@
       "containerId": null,
       "originalText": "Некорректное кол-во",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -3637,7 +3637,7 @@
       "containerId": "dX-Rg0uoYZ1b-YBU0l4hR",
       "originalText": "<Повтор последнего сообщения с клавиатурой>",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "arrow",
@@ -3727,7 +3727,7 @@
       "containerId": null,
       "originalText": "Удалилили мероприятие /\nчеловека с мероприятия",
       "lineHeight": 1.25,
-      "baseline": 76
+      "baseline": 77
     },
     {
       "type": "text",
@@ -3763,7 +3763,7 @@
       "containerId": null,
       "originalText": "Выбран активист",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "text",
@@ -3799,7 +3799,7 @@
       "containerId": null,
       "originalText": "Введено название",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "text",
@@ -3835,7 +3835,7 @@
       "containerId": null,
       "originalText": "Введена дата",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -3979,40 +3979,40 @@
       ]
     },
     {
-      "id": "wmR6CkXf5rjbFlBZi12K6",
       "type": "text",
-      "x": 6894.192234387015,
-      "y": 242.42695684811724,
-      "width": 441.931640625,
-      "height": 41.4,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 2,
+      "versionNonce": 1936589585,
+      "isDeleted": false,
+      "id": "wmR6CkXf5rjbFlBZi12K6",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 6894.192234387015,
+      "y": 242.42695684811724,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 441.931640625,
+      "height": 41.4,
+      "seed": 291836447,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": null,
-      "seed": 291836447,
-      "version": 2,
-      "versionNonce": 1936589585,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738585974660,
       "link": null,
       "locked": false,
-      "text": "Добавление пользователя",
       "fontSize": 36,
       "fontFamily": 2,
+      "text": "Добавление пользователя",
       "textAlign": "center",
       "verticalAlign": "middle",
-      "baseline": 33,
       "containerId": "0OTAk5paON9jbWg6SHAfU",
       "originalText": "Добавление пользователя",
-      "lineHeight": 1.15
+      "lineHeight": 1.15,
+      "baseline": 33
     },
     {
       "type": "rectangle",
@@ -4172,7 +4172,7 @@
       "containerId": "CxdUmUPvJuWShFsZazkWI",
       "originalText": "Выберите мероприятие для отмены \n<Клавиатура с мероприятиями>",
       "lineHeight": 1.25,
-      "baseline": 195
+      "baseline": 194
     },
     {
       "type": "text",
@@ -4208,7 +4208,7 @@
       "containerId": null,
       "originalText": "Введено кол-во",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "text",
@@ -4244,7 +4244,7 @@
       "containerId": null,
       "originalText": "Введено кол-во",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "text",
@@ -4280,7 +4280,7 @@
       "containerId": null,
       "originalText": "Закончен выбор",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -4358,7 +4358,7 @@
       "containerId": "KEWOzCUb5nQpIhDrSAMfA",
       "originalText": "Введите Telegram ID пользователя\n(Telegram ID — это некоторое число. Для его получения нужно воспользоваться ботом (например, @GetChatID_IL_BOT))",
       "lineHeight": 1.25,
-      "baseline": 405
+      "baseline": 404
     },
     {
       "type": "arrow",
@@ -4418,40 +4418,40 @@
       ]
     },
     {
-      "id": "C3wxj-zcGza7E9EBxrYWL",
       "type": "text",
-      "x": 5295.335578248234,
-      "y": 337.29743791711707,
-      "width": 340.06640625,
-      "height": 82.8,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 44,
+      "versionNonce": 1161931455,
+      "isDeleted": false,
+      "id": "C3wxj-zcGza7E9EBxrYWL",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 5295.335578248234,
+      "y": 337.29743791711707,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 340.06640625,
+      "height": 82.8,
+      "seed": 1745157201,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": null,
-      "seed": 1745157201,
-      "version": 44,
-      "versionNonce": 1161931455,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738586048112,
       "link": null,
       "locked": false,
-      "text": "Просмотр активных \nмероприятий",
       "fontSize": 36,
       "fontFamily": 2,
+      "text": "Просмотр активных \nмероприятий",
       "textAlign": "center",
       "verticalAlign": "middle",
-      "baseline": 74,
       "containerId": "jEClhNh3W_VmMnj_4Ijlz",
       "originalText": "Просмотр активных мероприятий",
-      "lineHeight": 1.15
+      "lineHeight": 1.15,
+      "baseline": 74
     },
     {
       "type": "arrow",
@@ -4819,40 +4819,40 @@
       ]
     },
     {
-      "id": "37_66R704u7Jw83PHmoxt",
       "type": "text",
-      "x": 5730.463612142149,
-      "y": 366.54999999999865,
-      "width": 359.19140625,
-      "height": 41.4,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 21,
+      "versionNonce": 1763494737,
+      "isDeleted": false,
+      "id": "37_66R704u7Jw83PHmoxt",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 5730.463612142149,
+      "y": 366.54999999999865,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 359.19140625,
+      "height": 41.4,
+      "seed": 1513543551,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": null,
-      "seed": 1513543551,
-      "version": 21,
-      "versionNonce": 1763494737,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738586106106,
       "link": null,
       "locked": false,
-      "text": "Отмена мероприятия",
       "fontSize": 36,
       "fontFamily": 2,
+      "text": "Отмена мероприятия",
       "textAlign": "center",
       "verticalAlign": "middle",
-      "baseline": 33,
       "containerId": "81Rlj_lCJYZgHoX2rrxU-",
       "originalText": "Отмена мероприятия",
-      "lineHeight": 1.15
+      "lineHeight": 1.15,
+      "baseline": 33
     },
     {
       "type": "arrow",
@@ -5082,7 +5082,7 @@
       "containerId": null,
       "originalText": "Да\\Нет",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "arrow",
@@ -5176,7 +5176,7 @@
       "containerId": null,
       "originalText": "Отмена",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -5254,7 +5254,7 @@
       "containerId": "_y5kDbRvHw1TaflnfcZ8b",
       "originalText": "Выберите активиста <Клавиатура с активистами>",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "arrow",
@@ -5318,40 +5318,40 @@
       ]
     },
     {
-      "id": "QDX-xwjFLQYCqf1J8bgsY",
       "type": "text",
-      "x": 7260.174864560789,
-      "y": 174.76678710312655,
-      "width": 400.095703125,
-      "height": 41.4,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 22,
+      "versionNonce": 1923047711,
+      "isDeleted": false,
+      "id": "QDX-xwjFLQYCqf1J8bgsY",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 7260.174864560789,
+      "y": 174.76678710312655,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 400.095703125,
+      "height": 41.4,
+      "seed": 561730865,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": null,
-      "seed": 561730865,
-      "version": 22,
-      "versionNonce": 1923047711,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738585967753,
       "link": null,
       "locked": false,
-      "text": "Удаление пользователя",
       "fontSize": 36,
       "fontFamily": 2,
+      "text": "Удаление пользователя",
       "textAlign": "center",
       "verticalAlign": "middle",
-      "baseline": 33,
       "containerId": "vz4m8SUjn_h2llMldN4hh",
       "originalText": "Удаление пользователя",
-      "lineHeight": 1.15
+      "lineHeight": 1.15,
+      "baseline": 33
     },
     {
       "type": "arrow",
@@ -5616,7 +5616,7 @@
       "containerId": null,
       "originalText": "Отмена",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "line",
@@ -5696,7 +5696,7 @@
       "containerId": null,
       "originalText": "Отмена",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -5863,7 +5863,7 @@
       "containerId": "Bp7v73bpGVnSZGz49JTVq",
       "originalText": "Экспорт отчётов в гугл",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -6063,7 +6063,7 @@
       "containerId": "IySwGLgc9_1szJuxH7Y-e",
       "originalText": "<Повтор последнего сообщения с клавиатурой>",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "arrow",
@@ -6151,47 +6151,36 @@
       "containerId": null,
       "originalText": "Добавили отчет",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
-      "id": "Ykty4xgmzEGdca3i9XkJG",
       "type": "arrow",
-      "x": 4579.542253592016,
-      "y": 2867.2604604452636,
-      "width": 0,
-      "height": 120,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 475,
+      "versionNonce": 263819583,
+      "isDeleted": false,
+      "id": "Ykty4xgmzEGdca3i9XkJG",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 4579.542253592016,
+      "y": 2867.2604604452636,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 0,
+      "height": 120,
+      "seed": 1912702449,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": {
         "type": 2
       },
-      "seed": 1912702449,
-      "version": 475,
-      "versionNonce": 263819583,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738585022746,
       "link": null,
       "locked": false,
-      "points": [
-        [
-          0,
-          0
-        ],
-        [
-          0,
-          120
-        ]
-      ],
-      "lastCommittedPoint": null,
       "startBinding": {
         "elementId": "VticPgdTvZufW5SV0DsTv",
         "focus": 0.06839802130897536,
@@ -6202,37 +6191,9 @@
         "focus": -0.0410958904109589,
         "gap": 1
       },
+      "lastCommittedPoint": null,
       "startArrowhead": null,
-      "endArrowhead": "arrow"
-    },
-    {
-      "id": "9JJGf8ni8mbxxkehNd9L0",
-      "type": "arrow",
-      "x": 4579.542253592016,
-      "y": 3267.2604604452636,
-      "width": 0,
-      "height": 100,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
-      "fillStyle": "solid",
-      "strokeWidth": 2,
-      "strokeStyle": "solid",
-      "roughness": 1,
-      "opacity": 100,
-      "groupIds": [],
-      "frameId": "Tt33kRsZTPydWkBUIvKqB",
-      "roundness": {
-        "type": 2
-      },
-      "seed": 905666001,
-      "version": 475,
-      "versionNonce": 257058353,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1738585022746,
-      "link": null,
-      "locked": false,
+      "endArrowhead": "arrow",
       "points": [
         [
           0,
@@ -6240,10 +6201,38 @@
         ],
         [
           0,
-          100
+          120
         ]
-      ],
-      "lastCommittedPoint": null,
+      ]
+    },
+    {
+      "type": "arrow",
+      "version": 475,
+      "versionNonce": 257058353,
+      "isDeleted": false,
+      "id": "9JJGf8ni8mbxxkehNd9L0",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 4579.542253592016,
+      "y": 3267.2604604452636,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 0,
+      "height": 100,
+      "seed": 905666001,
+      "groupIds": [],
+      "frameId": "Tt33kRsZTPydWkBUIvKqB",
+      "roundness": {
+        "type": 2
+      },
+      "boundElements": [],
+      "updated": 1738585022746,
+      "link": null,
+      "locked": false,
       "startBinding": {
         "elementId": "bvBg_6MyOiX10cpLg_I4v",
         "focus": 0.0410958904109589,
@@ -6254,37 +6243,9 @@
         "focus": -0.0410958904109589,
         "gap": 1
       },
+      "lastCommittedPoint": null,
       "startArrowhead": null,
-      "endArrowhead": "arrow"
-    },
-    {
-      "id": "ilULPsaEnuMKGAIKnx55p",
-      "type": "arrow",
-      "x": 4560,
-      "y": 1140,
-      "width": 0,
-      "height": 160,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
-      "fillStyle": "solid",
-      "strokeWidth": 2,
-      "strokeStyle": "solid",
-      "roughness": 1,
-      "opacity": 100,
-      "groupIds": [],
-      "frameId": "Tt33kRsZTPydWkBUIvKqB",
-      "roundness": {
-        "type": 2
-      },
-      "seed": 1263850129,
-      "version": 18,
-      "versionNonce": 303239519,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1738585022746,
-      "link": null,
-      "locked": false,
+      "endArrowhead": "arrow",
       "points": [
         [
           0,
@@ -6292,10 +6253,38 @@
         ],
         [
           0,
-          160
+          100
         ]
-      ],
-      "lastCommittedPoint": null,
+      ]
+    },
+    {
+      "type": "arrow",
+      "version": 18,
+      "versionNonce": 303239519,
+      "isDeleted": false,
+      "id": "ilULPsaEnuMKGAIKnx55p",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 4560,
+      "y": 1140,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 0,
+      "height": 160,
+      "seed": 1263850129,
+      "groupIds": [],
+      "frameId": "Tt33kRsZTPydWkBUIvKqB",
+      "roundness": {
+        "type": 2
+      },
+      "boundElements": [],
+      "updated": 1738585022746,
+      "link": null,
+      "locked": false,
       "startBinding": {
         "elementId": "EImxP5APKV4k91NE0nOPh",
         "focus": 0.07357700361698216,
@@ -6306,37 +6295,9 @@
         "focus": -0.1090805254140512,
         "gap": 1
       },
+      "lastCommittedPoint": null,
       "startArrowhead": null,
-      "endArrowhead": "arrow"
-    },
-    {
-      "id": "BCg1FPjOpOlpCjXEyLIQ7",
-      "type": "arrow",
-      "x": 4580,
-      "y": 1580,
-      "width": 0,
-      "height": 140,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
-      "fillStyle": "solid",
-      "strokeWidth": 2,
-      "strokeStyle": "solid",
-      "roughness": 1,
-      "opacity": 100,
-      "groupIds": [],
-      "frameId": "Tt33kRsZTPydWkBUIvKqB",
-      "roundness": {
-        "type": 2
-      },
-      "seed": 450015679,
-      "version": 20,
-      "versionNonce": 426276881,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1738585022746,
-      "link": null,
-      "locked": false,
+      "endArrowhead": "arrow",
       "points": [
         [
           0,
@@ -6344,10 +6305,38 @@
         ],
         [
           0,
-          140
+          160
         ]
-      ],
-      "lastCommittedPoint": null,
+      ]
+    },
+    {
+      "type": "arrow",
+      "version": 20,
+      "versionNonce": 426276881,
+      "isDeleted": false,
+      "id": "BCg1FPjOpOlpCjXEyLIQ7",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 4580,
+      "y": 1580,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 0,
+      "height": 140,
+      "seed": 450015679,
+      "groupIds": [],
+      "frameId": "Tt33kRsZTPydWkBUIvKqB",
+      "roundness": {
+        "type": 2
+      },
+      "boundElements": [],
+      "updated": 1738585022746,
+      "link": null,
+      "locked": false,
       "startBinding": {
         "elementId": "ygVuOOpbceBOKdv-Q_P-n",
         "focus": 0.040548258138208816,
@@ -6358,37 +6347,61 @@
         "focus": -0.044595576747810374,
         "gap": 1
       },
+      "lastCommittedPoint": null,
       "startArrowhead": null,
-      "endArrowhead": "arrow"
+      "endArrowhead": "arrow",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          140
+        ]
+      ]
     },
     {
-      "id": "J3xIboR9pXffhDvAtzBOw",
       "type": "arrow",
-      "x": 4280,
-      "y": 1940,
-      "width": 240,
-      "height": 120,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 110,
+      "versionNonce": 827819423,
+      "isDeleted": false,
+      "id": "J3xIboR9pXffhDvAtzBOw",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 4280,
+      "y": 1940,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 240,
+      "height": 120,
+      "seed": 2025972177,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": {
         "type": 2
       },
-      "seed": 2025972177,
-      "version": 110,
-      "versionNonce": 827819423,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738585022746,
       "link": null,
       "locked": false,
+      "startBinding": {
+        "elementId": "mjWeEi7cylakf_CCijITQ",
+        "focus": -0.6713405336481643,
+        "gap": 21.18114248090251
+      },
+      "endBinding": {
+        "elementId": "mjWeEi7cylakf_CCijITQ",
+        "focus": 0.2753623188405797,
+        "gap": 1.1811424809025084
+      },
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
       "points": [
         [
           0,
@@ -6406,60 +6419,36 @@
           20,
           -120
         ]
-      ],
-      "lastCommittedPoint": null,
-      "startBinding": {
-        "elementId": "mjWeEi7cylakf_CCijITQ",
-        "focus": -0.6713405336481643,
-        "gap": 21.18114248090251
-      },
-      "endBinding": {
-        "elementId": "mjWeEi7cylakf_CCijITQ",
-        "focus": 0.2753623188405797,
-        "gap": 1.1811424809025084
-      },
-      "startArrowhead": null,
-      "endArrowhead": "arrow"
+      ]
     },
     {
-      "id": "2J9YwhWx-0GcQX0q20uSM",
       "type": "arrow",
-      "x": 9138.540441336932,
-      "y": 700,
-      "width": 0.5155116860551061,
-      "height": 79,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 190,
+      "versionNonce": 1960473375,
+      "isDeleted": false,
+      "id": "2J9YwhWx-0GcQX0q20uSM",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 9138.540441336932,
+      "y": 700,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 0.5155116860551061,
+      "height": 79,
+      "seed": 1084431025,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": {
         "type": 2
       },
-      "seed": 1084431025,
-      "version": 190,
-      "versionNonce": 1960473375,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738585623790,
       "link": null,
       "locked": false,
-      "points": [
-        [
-          0,
-          0
-        ],
-        [
-          0.5155116860551061,
-          79
-        ]
-      ],
-      "lastCommittedPoint": null,
       "startBinding": {
         "elementId": "mkHjxVP3iFs761myTEhPU",
         "focus": 0.042735042735042736,
@@ -6470,48 +6459,48 @@
         "focus": -0.0410958904109589,
         "gap": 1
       },
+      "lastCommittedPoint": null,
       "startArrowhead": null,
-      "endArrowhead": "arrow"
-    },
-    {
-      "id": "fAF7ZnKRErpFxBEOggaJr",
-      "type": "arrow",
-      "x": 9120,
-      "y": 1060,
-      "width": 0,
-      "height": 100,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
-      "fillStyle": "solid",
-      "strokeWidth": 2,
-      "strokeStyle": "solid",
-      "roughness": 1,
-      "opacity": 100,
-      "groupIds": [],
-      "frameId": "Tt33kRsZTPydWkBUIvKqB",
-      "roundness": {
-        "type": 2
-      },
-      "seed": 1758023903,
-      "version": 15,
-      "versionNonce": 1293872849,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1738585736403,
-      "link": null,
-      "locked": false,
+      "endArrowhead": "arrow",
       "points": [
         [
           0,
           0
         ],
         [
-          0,
-          100
+          0.5155116860551061,
+          79
         ]
-      ],
-      "lastCommittedPoint": null,
+      ]
+    },
+    {
+      "type": "arrow",
+      "version": 15,
+      "versionNonce": 1293872849,
+      "isDeleted": false,
+      "id": "fAF7ZnKRErpFxBEOggaJr",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "angle": 0,
+      "x": 9120,
+      "y": 1060,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 0,
+      "height": 100,
+      "seed": 1758023903,
+      "groupIds": [],
+      "frameId": "Tt33kRsZTPydWkBUIvKqB",
+      "roundness": {
+        "type": 2
+      },
+      "boundElements": [],
+      "updated": 1738585736403,
+      "link": null,
+      "locked": false,
       "startBinding": {
         "elementId": "rFBXfL1rT1_MQwv5SR2Ly",
         "focus": 0.1095890410958904,
@@ -6522,37 +6511,57 @@
         "focus": -0.1095890410958904,
         "gap": 1
       },
+      "lastCommittedPoint": null,
       "startArrowhead": null,
-      "endArrowhead": "arrow"
+      "endArrowhead": "arrow",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          100
+        ]
+      ]
     },
     {
-      "id": "rwPIX5IaKQvY3xff-_Yil",
       "type": "arrow",
-      "x": 8960,
-      "y": 1440,
-      "width": 1180,
-      "height": 380,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 137,
+      "versionNonce": 764533745,
+      "isDeleted": false,
+      "id": "rwPIX5IaKQvY3xff-_Yil",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 8960,
+      "y": 1440,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 1180,
+      "height": 380,
+      "seed": 2006091665,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": {
         "type": 2
       },
-      "seed": 2006091665,
-      "version": 137,
-      "versionNonce": 764533745,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738585819777,
       "link": null,
       "locked": false,
+      "startBinding": {
+        "elementId": "9ODcv6vOTAFMoT94hQ41b",
+        "focus": -0.04208416833667334,
+        "gap": 4
+      },
+      "endBinding": null,
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": null,
       "points": [
         [
           0,
@@ -6566,41 +6575,32 @@
           -1180,
           380
         ]
-      ],
-      "lastCommittedPoint": null,
-      "startBinding": {
-        "elementId": "9ODcv6vOTAFMoT94hQ41b",
-        "focus": -0.04208416833667334,
-        "gap": 4
-      },
-      "endBinding": null,
-      "startArrowhead": null,
-      "endArrowhead": null
+      ]
     },
     {
-      "id": "QxmNiuDgHcmRnlKTCgnx-",
       "type": "arrow",
-      "x": 6080,
-      "y": 80,
-      "width": 3020,
-      "height": 320,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 175,
+      "versionNonce": 2139010737,
+      "isDeleted": false,
+      "id": "QxmNiuDgHcmRnlKTCgnx-",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 6080,
+      "y": 80,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 3020,
+      "height": 320,
+      "seed": 1832303583,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": {
         "type": 2
       },
-      "seed": 1832303583,
-      "version": 175,
-      "versionNonce": 2139010737,
-      "isDeleted": false,
       "boundElements": [
         {
           "type": "text",
@@ -6610,6 +6610,15 @@
       "updated": 1738585907503,
       "link": null,
       "locked": false,
+      "startBinding": null,
+      "endBinding": {
+        "elementId": "mkHjxVP3iFs761myTEhPU",
+        "focus": 0.7431110189122843,
+        "gap": 20
+      },
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
       "points": [
         [
           0,
@@ -6623,52 +6632,43 @@
           3020,
           320
         ]
-      ],
-      "lastCommittedPoint": null,
-      "startBinding": null,
-      "endBinding": {
-        "elementId": "mkHjxVP3iFs761myTEhPU",
-        "focus": 0.7431110189122843,
-        "gap": 20
-      },
-      "startArrowhead": null,
-      "endArrowhead": "arrow"
+      ]
     },
     {
-      "id": "TsKBWUGWtoDT_JfHJukO-",
       "type": "text",
-      "x": 7472.7177734375,
-      "y": 79.3,
-      "width": 334.564453125,
-      "height": 41.4,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "version": 26,
+      "versionNonce": 943285407,
+      "isDeleted": false,
+      "id": "TsKBWUGWtoDT_JfHJukO-",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
+      "angle": 0,
+      "x": 7472.7177734375,
+      "y": 79.3,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "width": 334.564453125,
+      "height": 41.4,
+      "seed": 1355504177,
       "groupIds": [],
       "frameId": "Tt33kRsZTPydWkBUIvKqB",
       "roundness": null,
-      "seed": 1355504177,
-      "version": 26,
-      "versionNonce": 943285407,
-      "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1738585906251,
       "link": null,
       "locked": false,
-      "text": "Массовая рассылка",
       "fontSize": 36,
       "fontFamily": 2,
+      "text": "Массовая рассылка",
       "textAlign": "center",
       "verticalAlign": "middle",
-      "baseline": 33,
       "containerId": "QxmNiuDgHcmRnlKTCgnx-",
       "originalText": "Массовая рассылка",
-      "lineHeight": 1.15
+      "lineHeight": 1.15,
+      "baseline": 33
     },
     {
       "type": "frame",
@@ -6761,7 +6761,7 @@
       "containerId": null,
       "originalText": "V1",
       "lineHeight": 1.25,
-      "baseline": 457
+      "baseline": 456
     },
     {
       "type": "rectangle",
@@ -6875,7 +6875,7 @@
       "containerId": null,
       "originalText": "Закончен выбор",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -6953,7 +6953,7 @@
       "containerId": "ygVuOOpbceBOKdv-Q_P-n",
       "originalText": "Введите место проведения мероприятия",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "text",
@@ -6989,7 +6989,7 @@
       "containerId": null,
       "originalText": "Введено место",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "text",
@@ -7025,7 +7025,7 @@
       "containerId": null,
       "originalText": "Некорректное кол-во",
       "lineHeight": 1.25,
-      "baseline": 31
+      "baseline": 32
     },
     {
       "type": "rectangle",
@@ -7103,7 +7103,7 @@
       "containerId": "mkHjxVP3iFs761myTEhPU",
       "originalText": "Введите сообщение для рассылки",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     },
     {
       "type": "rectangle",
@@ -7259,7 +7259,7 @@
       "containerId": "9ODcv6vOTAFMoT94hQ41b",
       "originalText": "Сообщение <текст> будет отправлено в <время>",
       "lineHeight": 1.25,
-      "baseline": 90
+      "baseline": 89
     }
   ],
   "appState": {
