@@ -35,16 +35,19 @@ const (
 	ButtPeopleCategory3 = EmojiEnd + "По полу" + EmojiStart
 	ButtPeopleCategory4 = EmojiEnd + "По факультету" + EmojiStart
 
-	ButtCodeAnswerQuestion  = "answerQuestion"
-	ButtCodeAddYourQuestion = "addQuestion"
-	ButtCodeAnswerCategory1 = "answerCategory1"
-	ButtCodeAnswerCategory2 = "answerCategory2"
-	ButtCodeAnswerCategory3 = "answerCategory3"
-	ButtCodePeopleCategory1 = "peopleCategory1"
-	ButtCodePeopleCategory2 = "peopleCategory2"
-	ButtCodePeopleCategory3 = "peopleCategory3"
-	ButtCodePeopleCategory4 = "peopleCategory4"
-	delayDuration           = 2 * time.Second
+	ButtCodeAnswerQuestion           = "answerQuestion"
+	ButtCodeAddYourQuestion          = "addQuestion"
+	ButtCodeAnswerCategory1          = "answerCategory1"
+	ButtCodeAnswerCategory2          = "answerCategory2"
+	ButtCodeAnswerCategory3          = "answerCategory3"
+	ButtCodePeopleCategory1          = "peopleCategory1"
+	ButtCodePeopleCategory2          = "peopleCategory2"
+	ButtCodePeopleCategory3          = "peopleCategory3"
+	ButtCodePeopleCategory4          = "peopleCategory4"
+	delayDuration                    = 2 * time.Second
+	ButtCodeAddEducationalQuestion   = "addEducationalQuestion"
+	ButtCodeAddPsychologicalQuestion = "addPsychologicalQuestion"
+	ButtCodeAddOtherQuestion         = "addOtherQuestion"
 )
 
 var bot *tgbotapi.BotAPI
@@ -103,10 +106,13 @@ func insertUserDataToDB(age, course int, sex, faculty string) error {
 }
 
 func extractName(text string) string {
-	index := strings.Index(text, "Меня зовут ")
-	if index != -1 {
-		name := strings.TrimSpace(text[index+len("Меня зовут "):])
-		return name
+	myName := [6]string{"Меня зовут", "меня зовут", "менязовут", "Менязовут", "мое имя", "Моё имя"}
+	for _, n := range myName {
+		index := strings.Index(text, n)
+		if index != -1 {
+			name := strings.TrimSpace(text[index+len(n):])
+			return name
+		}
 	}
 	return ""
 }
@@ -145,7 +151,7 @@ func DoWithTries(fn func() error, attemtps int, delay time.Duration) (err error)
 func NewClient(ctx context.Context, maxAttempts int, username, password, host, port, database string) (pool *pgxpool.Pool, err error) {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", username, password, host, port, database)
 	err = DoWithTries(func() error {
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
 		pool, err = pgxpool.Connect(ctx, dsn)
 		if err != nil {
@@ -153,7 +159,7 @@ func NewClient(ctx context.Context, maxAttempts int, username, password, host, p
 		}
 		return nil
 
-	}, maxAttempts, 5*time.Second)
+	}, maxAttempts, 10*time.Second)
 	if err != nil {
 		log.Fatal("err do with tries postgresql")
 	}
@@ -238,7 +244,7 @@ func handleUserAnswer(update *tgbotapi.Update, questionID int) {
 	}
 
 	if !validAnswer {
-		sendMessage("Пожалуйста, выберите один из предложенных вариантов ответа.")
+		sendMessage("Пожалуйста, выберите один из предложенных вариантов ответа(да,нет,не знаю)")
 		return
 	}
 
@@ -263,7 +269,7 @@ func handleUserAnswer(update *tgbotapi.Update, questionID int) {
 		return
 	}
 
-	sendMessage("Спасибо за ваш ответ! Он успешно сохранен.")
+	sendMessage("Спасибо за ваш ответ. Он успешно добавлен в базу данных!")
 }
 
 func handleEducationalQuestion(update *tgbotapi.Update) {
@@ -297,6 +303,55 @@ func handleEducationalQuestion(update *tgbotapi.Update) {
 		}
 	}
 }
+func saveQuestionToDB(topic, question string) error {
+	connConfig, err := pgx.ParseConfig(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		return err
+	}
+
+	conn, err := pgx.ConnectConfig(context.Background(), connConfig)
+	if err != nil {
+		return err
+	}
+	defer conn.Close(context.Background())
+
+	_, err = conn.Exec(context.Background(), `
+        INSERT INTO revues (topic, vopros) VALUES ($1, $2);
+    `, topic, question)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func handleAddQuestion(update *tgbotapi.Update, topic string) {
+	sendMessage("Пожалуйста, введите ваш вопрос:")
+
+	for update := range bot.GetUpdatesChan(tgbotapi.NewUpdate(0)) {
+		if update.Message != nil && update.Message.Chat.ID == chatId {
+			question := update.Message.Text
+			err := saveQuestionToDB(topic, question)
+			if err != nil {
+				sendMessage("Произошла ошибка при сохранении вопроса. Пожалуйста, попробуйте снова.")
+				log.Println("Error saving question to DB:", err)
+			} else {
+				sendMessage("Ваш вопрос успешно добавлен!")
+			}
+			break
+		}
+	}
+}
+
+func showAddQuestionCategoryMenu(update *tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(chatId, "Выберите категорию для вашего вопроса:")
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		getKeyBoardRow("Образовательные", ButtCodeAddEducationalQuestion),
+		getKeyBoardRow("Психологические", ButtCodeAddPsychologicalQuestion),
+		getKeyBoardRow("Другое", ButtCodeAddOtherQuestion),
+	)
+	bot.Send(msg)
+}
 
 func updateProcessing(update *tgbotapi.Update) {
 	choiceCode := update.CallbackQuery.Data
@@ -308,7 +363,13 @@ func updateProcessing(update *tgbotapi.Update) {
 	case ButtCodeAnswerQuestion:
 		showMenuAnswer(update)
 	case ButtCodeAddYourQuestion:
-		showMenuAdd(update)
+		showAddQuestionCategoryMenu(update)
+	case ButtCodeAddEducationalQuestion:
+		handleAddQuestion(update, "образовательные")
+	case ButtCodeAddPsychologicalQuestion:
+		handleAddQuestion(update, "психологические")
+	case ButtCodeAddOtherQuestion:
+		handleAddQuestion(update, "другое")
 	}
 }
 
