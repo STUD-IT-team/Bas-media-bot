@@ -6,13 +6,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import any_state
 from handlers.state import AdminStates, MemberStates
 from storage.storage import BaseStorage
+from logging import Logger
 
 
 
 UnknownRouter = Router()
 
 @UnknownRouter.message(any_state)
-async def UnknownMessage(message : Message, storage : BaseStorage, state : FSMContext):
+async def UnknownMessage(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     chatID = message.chat.id
     username = message.chat.username
 
