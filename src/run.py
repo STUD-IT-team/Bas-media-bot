@@ -1,15 +1,28 @@
+# Miscellaneous
 import os
 import sys
 import asyncio
 import redis
 import logging
+
+# Aiogram
 from aiogram import Bot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.enums import ParseMode
+
+# Routers
 from handlers.unknown import UnknownRouter
+from handlers.admin.default import AdminDefaultRouter
+from handlers.member.default import MemberDefaultRouter
+
+# Utils
 from utils.token import GetBotTokenEnv, GetRedisCredEnv, GetPgCredEnv
+
+# Storages
 from storage.pgredis import PgRedisStorage, PostgresCredentials, RedisCredentials
+
+# Middleware
 from middleware.storage import StorageMiddleware
 from middleware.log import LogMiddleware
 from middleware.auth import AuthMiddleware
@@ -39,6 +52,9 @@ if __name__ == "__main__":
 
     bot = Bot(token=GetBotTokenEnv(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher(storage=RedisStorage.from_url(f"redis://{redcred.user}:{redcred.password}@{redcred.host}:{redcred.port}/1"))
+    
+    dp.include_router(AdminDefaultRouter)
+    dp.include_router(MemberDefaultRouter)
     dp.include_router(UnknownRouter)
 
     logger = logging.getLogger("bas-bot-logger")

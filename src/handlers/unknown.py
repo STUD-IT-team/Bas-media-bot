@@ -1,5 +1,3 @@
-import asyncio
-
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
@@ -8,44 +6,16 @@ from handlers.state import AdminStates, MemberStates
 from storage.storage import BaseStorage
 from logging import Logger
 
-
+class UnknownRouterError(Exception):
+    def __str__(self):
+        return "user got in unknown router"
 
 UnknownRouter = Router()
 
 @UnknownRouter.message(any_state)
 async def UnknownMessage(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
-    chatID = message.chat.id
-    username = message.chat.username
-    await message.answer("Ура миддлвари работают")
-    return
-
-    # try:
-    #     storage.PutTgUser(chatID, username)
-    # except Exception as e:
-    #     await message.answer(f"Внутренняя ошибка сервера {str(e)}")
-    #     return
-    # try:
-    #     activist = storage.GetActivistByChatID(chatID)
-    # except Exception as e:
-    #     await message.answer(f"Внутренняя ошибка сервера {str(e)}")
-    #     return
-    
-    # try:
-    #     admin = storage.GetAdminByChatID(chatID)
-    # except Exception as e:
-    #     await message.answer(f"Внутренняя ошибка сервера {str(e)}")
-    #     return
-    
-    # if activist is None or not activist.Valid:
-    #     await message.answer("Не могу найти вас в своих базах, если это ошибка - напишите администратору")
-    #     return
-    
-    # elif admin is None:
-    #     await message.answer(f"Активист, {activist.Name}! Что хотите сделать?")
-    #     await state.set_state(MemberStates.Default)
-    # else:
-    #     await message.answer(f"Администратор, {activist.Name}! Что хотите сделать?")
-    #     await state.set_state(AdminStates.Default)
-
+    await message.answer("Что-то пошло не так... Вы не должны были сюда попасть... Позовите админа...")
+    logger.critical(f"{message.chat.id}:{message.chat.username} got in unknown router state")
+    raise UnknownRouterError
     
     
