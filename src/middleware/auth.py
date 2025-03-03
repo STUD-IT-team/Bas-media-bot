@@ -6,6 +6,7 @@ from typing import Dict, Any
 from logging import Logger
 
 from handlers.state import MemberStates, AdminStates
+from handlers.usertransition import TransitToMemberDefault, TransitToAdminDefault, TransitToUnauthorized
 
 class UnauthorizedError(Exception):
     def __str__(self):
@@ -43,27 +44,18 @@ class AuthMiddleware(BaseMiddleware):
             raise
 
         if activist is None or not activist.Valid:
-            await message.answer("Не могу найти вас в своих базах, если это ошибка - напишите администратору")
-            await state.clear()
+            TransitToUnauthorized(message=message, state=state)
             raise UnauthorizedError()
 
         elif admin is None and (userType is None or userType != "activist"):
-            await state.clear()
-            await state.set_data({"user-type": "activist"})
-            # TODO: Заменить на вызов функции по смену статуса в дефолтные ручки
             await message.answer("Ваш статус поменялся")
-            await message.answer(f"Активист, {activist.Name}! Что хотите сделать?")
-            await state.set_state(MemberStates.Default)
+            await TransitToMemberDefault(message=message, state=state, activist=activist)
             logger.info(f"{message.chat.id}:{message.chat.username} changed status to activist")
             return
 
         elif admin is not None and (userType is None or userType != "admin"):
-            await state.clear()
-            await state.set_data({"user-type": "admin"})
-            # TODO: Заменить на вызов функции по смену статуса в дефолтные ручки
             await message.answer("Ваш статус поменялся")
-            await message.answer(f"Администратор, {activist.Name}! Что хотите сделать?")
-            await state.set_state(AdminStates.Default)
+            await TransitToAdminDefault(message=message, state=state, activist=activist)
             logger.info(f"{message.chat.id}:{message.chat.username} changed status to admin")
             return
 
