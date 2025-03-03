@@ -1,7 +1,7 @@
 from aiogram import BaseMiddleware
 from storage.storage import BaseStorage
 from collections.abc import Callable, Awaitable
-from aiogram.types import Message
+from aiogram.types import Update, Message
 from typing import Dict, Any
 from logging import Logger
 
@@ -16,12 +16,16 @@ class LogMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
-        event: Message,
+        event: Update,
         data: Dict[str, Any]
     ) -> Any:
         data['logger'] = self.logger
-        self.logger.info(f"Got new from {event.chat_id}:{event.chat.username}. Text: {event.text}")
-        result = await handler(event, data)
-        self.logger.info(f"Processed {event.chat_id}:{event.chat.username}. Text: {event.text}")
+        self.logger.info(f"Got new from {event.message.chat.id}:{event.message.chat.username}. Text: {event.message.text}")
+        result = None
+        try:
+            result = await handler(event, data)
+        except Exception as e:
+            self.logger.error(f"LogMiddleware: Error: {e}")
+        self.logger.info(f"Processed {event.message.chat.id}:{event.message.chat.username}. Text: {event.message.text}")
         return result
 

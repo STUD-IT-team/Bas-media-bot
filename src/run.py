@@ -10,6 +10,7 @@ from utils.token import GetBotTokenEnv, GetRedisCredEnv, GetPgCredEnv
 from storage.pgredis import PgRedisStorage, PostgresCredentials, RedisCredentials
 from middleware.storage import StorageMiddleware
 from middleware.log import LogMiddleware
+from middleware.auth import AuthMiddleware
 
 
 async def main() -> None:
@@ -30,9 +31,11 @@ if __name__ == "__main__":
     bot = Bot(token=GetBotTokenEnv(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher(storage=RedisStorage.from_url(f"redis://{redcred.user}:{redcred.password}@{redcred.host}:{redcred.port}/1"))
     dp.include_router(UnknownRouter)
-
-    dp.update.outer_middleware(StorageMiddleware(PgRedisStorage, pgcred, redcred))
+    
     dp.update.outer_middleware(LogMiddleware(logging.getLogger("bas-bot-logger")))
+    dp.update.outer_middleware(StorageMiddleware(PgRedisStorage, pgcred, redcred))
+    dp.update.outer_middleware(AuthMiddleware())
+    
 
 
     asyncio.run(main())
