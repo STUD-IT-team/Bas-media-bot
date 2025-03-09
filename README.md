@@ -109,7 +109,7 @@ REDIS_USER_PASSWORD = <RD_USER_PASSWORD>
 ## Деплой
 
 Для начала необходимо перейти в директорию deployments. На этот момент у вас уже должны быть созданы все env файлы, и создан бот.
-(Боты в Telegram создаются с помощью бота **t.me/bot_father**)
+(Боты в Telegram создаются с помощью бота **t.me/BotFather**)
 
 Сборка и запуск (В detached режиме):
 ```bash
