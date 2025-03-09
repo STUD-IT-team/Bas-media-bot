@@ -3,7 +3,7 @@ import asyncio
 from keyboards.default.admin import AdminDefaultKeyboard
 from keyboards.default.member import MemberDefaultKeyboard
 from handlers.state import MemberStates, AdminStates
-from storage.domain import Activist
+from models.activist import Activist
 
 from aiogram.types import Message
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove

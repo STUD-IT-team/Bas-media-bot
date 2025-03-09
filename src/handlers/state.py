@@ -11,11 +11,12 @@ class MemberAddingReportStates(StatesGroup):
 class AdminStates(StatesGroup):
     Default = State()
 
-class AdminTaskCreatingStates(StatesGroup):
+class AdminEventCreatingStates(StatesGroup):
+    EnteringName = State()
     EnteringDate = State()
     EnteringPlace = State() 
-    EnteringPhoto = State() 
-    EnteringVideo = State()
+    EnteringPhotoCount = State() 
+    EnteringVideoCount = State()
     ChoosingMembers = State()
     ChoosingChief = State()
 
