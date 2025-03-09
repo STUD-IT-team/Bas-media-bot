@@ -93,7 +93,7 @@ REDIS_USER_PASSWORD = <RD_USER_PASSWORD>
 ## Разработка
 
 Для начала необходимо склонировать репу, и настроить `git config`.
-Крайне рекомендуется предварительно настроить себе [SSH ключ на GitHub](docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
+Крайне рекомендуется предварительно настроить себе [SSH ключ на GitHub](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
 
 Затем требуется создать все необходимые env файлы в папке deployments.
 Шаблоны env файлов имеются выше. **! НЕ ЗАБУДЬ ЗАПОЛНИТЬ ЭТИ ФАЙЛЫ КОРРЕКТНЫМИ ЗНАЧЕНИЯМИ!**
@@ -104,12 +104,12 @@ REDIS_USER_PASSWORD = <RD_USER_PASSWORD>
 Не нужно делать разные по тематике работы в одной ветви, Сделайте для них две отдельные.
 
 Чтобы влить ваши изменения в main, требуется создать Pull request, в самом реквесте нужно описать то над чем вы работали,
-и отметить в качестве ревьюверов **[@Formak21](github.com/Formak21)** и **[@impervguin](github.com/impervguin)**. Если ваш реквест долго висит пишите нам в Telegram.
+и отметить в качестве ревьюверов **[@Formak21](https://github.com/Formak21)** и **[@impervguin](https://github.com/impervguin)**. Если ваш реквест долго висит пишите нам в Telegram.
 
 ## Деплой
 
 Для начала необходимо перейти в директорию deployments. На этот момент у вас уже должны быть созданы все env файлы, и создан бот.
-(Боты в Telegram создаются с помощью бота **[@BotFather](t.me/BotFather)**)
+(Боты в Telegram создаются с помощью бота **[@BotFather](https://t.me/BotFather)**)
 
 Сборка и запуск (В detached режиме):
 ```bash
@@ -128,4 +128,4 @@ docker compose up -d
 
 Думаю принцип понятен.
 
-Если у тебя сложности с docker, читай [документацию](docs.docker.com) и [ещё](docs.docker.com/compose/). Если не понял пиши [@Formak21](t.me/Formak21) или [@impervguin](t.me/impervguin).
+Если у тебя сложности с docker, читай [документацию](https://docs.docker.com) и [ещё](https://docs.docker.com/compose/). Если не понял пиши [@Formak21](https://t.me/Formak21) или [@impervguin](https://t.me/impervguin).
