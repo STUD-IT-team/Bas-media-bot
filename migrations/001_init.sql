@@ -113,7 +113,7 @@ CREATE TABLE notification (
   CONSTRAINT message_notnull CHECK (message IS NOT NULL),
   CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL),
   CONSTRAINT created_by_notnull CHECK (created_by IS NOT NULL),
-  CONSTRAINT created_by_fkey FOREIGN KEY (created_by) REFERENCES activist (id),
+  CONSTRAINT created_by_fkey FOREIGN KEY (created_by) REFERENCES tg_admin (id),
   CONSTRAINT send_to_fkey FOREIGN KEY (send_to) REFERENCES activist (id)
 );
 
