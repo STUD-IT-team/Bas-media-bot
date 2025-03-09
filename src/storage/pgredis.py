@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from storage.storage import BaseStorage
-from storage import domain
+from models.activist import Activist, Admin
+from models.event import Event
+from uuid import UUID
 import psycopg2
 import redis
 
@@ -49,7 +51,7 @@ class PgRedisStorage(BaseStorage):
         """, (chat_id, username))
         self.conn.commit()
 
-    def GetActivistByChatID(self, chatID : int) -> domain.Activist:
+    def GetActivistByChatID(self, chatID : int) -> Activist:
 
         cur = self.conn.cursor()
 
@@ -62,10 +64,22 @@ class PgRedisStorage(BaseStorage):
         
         act = None
         if row:
-            act = domain.Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
+            act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
         return act
     
-    def GetAdminByChatID(self, chatID : int) -> domain.Admin:
+    def GetActivistByID(self, ID : UUID):
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE activist.id = %s AND valid = true;
+        """, (ID.hex,))
+        row = cur.fetchone()
+        cur.close()
+        act = None
+        if row:
+            act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
+        return act
+    
+    def GetAdminByChatID(self, chatID : int) -> Admin:
         cur = self.conn.cursor()
 
         cur.execute("""
@@ -77,8 +91,63 @@ class PgRedisStorage(BaseStorage):
         
         adm = None
         if row:
-            adm = domain.Admin(ID=row[0], ChatID=row[1])
+            adm = Admin(ID=row[0], ChatID=row[1])
         return adm
+    
+    def PutEvent(self, event: Event):
+        cur = self.conn.cursor()
+
+        cur.execute("""
+            INSERT INTO event (id, evname, evdate, place, photo_amount, video_amount, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
+        """, (event.ID.hex, event.Name, event.Date, event.Place, event.PhotoCount, event.VideoCount, event.CreatedBy.hex, event.CreatedAt))
+
+        if event.IsCancelled and isinstance(event, CancelledEvent):
+            cur.execute("""
+                INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
+            """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
+        elif event.IsCompleted and isinstance(event, CompletedEvent):
+            cur.execute("""
+                INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
+            """, (event.ID.hex, event.CompletedBy.hex, event.CompletedAt))
+
+        # Inserting activists
+        cur.execute("""
+            INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, true)
+        """, (event.ID.hex, event.Chief.Activist.ID.hex))
+        for act in event.Activists:
+            cur.execute("""
+                INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, false)
+            """, (event.ID.hex, act.Activist.ID.hex))
+        self.conn.commit()
+        cur.close()
+
+    def GetValidActivists(self) -> list[Activist]:
+        cur = self.conn.cursor()
+
+        cur.execute("""
+            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE valid = true;
+        """)
+
+        rows = cur.fetchall()
+        cur.close()
+        
+        acts = []
+        for row in rows:
+            acts.append(Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3]))
+        return acts
+
+    def GetActivistByName(self, name : str) -> Activist:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE acname = %s AND valid = true;
+        """, (name,))
+        row = cur.fetchone()
+        cur.close()
+
+        if row:
+            act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
+            return act
+        return None
 
         
 
