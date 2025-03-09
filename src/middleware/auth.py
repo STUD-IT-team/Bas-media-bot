@@ -44,7 +44,7 @@ class AuthMiddleware(BaseMiddleware):
             raise
 
         if activist is None or not activist.Valid:
-            TransitToUnauthorized(message=message, state=state)
+            await TransitToUnauthorized(message=message, state=state)
             raise UnauthorizedError()
 
         elif admin is None and (userType is None or userType != "activist"):
