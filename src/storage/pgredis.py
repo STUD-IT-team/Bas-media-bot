@@ -1,7 +1,9 @@
 from pydantic import BaseModel
+from pydantic_core import from_json
 from storage.storage import BaseStorage
 from models.activist import Activist, Admin
 from models.event import Event
+from models.telegram import TelegramUserAgreement
 from uuid import UUID
 import psycopg2
 import redis
@@ -43,6 +45,40 @@ class PgRedisStorage(BaseStorage):
     def __del__(self):
         self.conn.close()
         self.redis.close()
+    
+    def GetTelegramUserPersonalDataAgreement(self, chatID) -> TelegramUserAgreement:
+        agreement = self.redis.get(name=str(chatID))
+        if agreement is not None:
+            return TelegramUserAgreement.model_validate_json(agreement)
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT chat_id, tg_username, agreed FROM tg_user WHERE chat_id = %s;
+        """, (chatID,))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            agreement = TelegramUserAgreement(ChatID=row[0], Username=row[1], Agreed=row[2])
+            try:
+                self.redis.set(name=str(chatID), value=agreement.model_dump_json())
+            finally:
+                return agreement
+        return None
+    
+    def SetTelegramUserPersonalDataAgreement(self, agreement: TelegramUserAgreement):
+        cur = self.conn.cursor()
+        self.PutTgUser(agreement.ChatID, agreement.Username)
+        cur.execute("""
+            UPDATE tg_user SET agreed = %s WHERE chat_id = %s;
+        """, (agreement.Agreed, agreement.ChatID))
+
+        self.conn.commit()
+        cur.close()
+
+        try:
+            self.redis.set(name=str(chatID), value=agreement.model_dump_json())
+        finally:
+            return
+
 
     def PutTgUser(self, chat_id : int, username : str):
         cur = self.conn.cursor()

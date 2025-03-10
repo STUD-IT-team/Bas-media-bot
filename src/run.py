@@ -28,6 +28,7 @@ from storage.pgredis import PgRedisStorage, PostgresCredentials, RedisCredential
 from middleware.storage import StorageMiddleware
 from middleware.log import LogMiddleware
 from middleware.auth import AuthMiddleware
+from middleware.agreement import AgreementMiddleware
 
 # Logging config options
 LOGGING_KWARGS = {
@@ -65,6 +66,7 @@ if __name__ == "__main__":
 
     dp.update.outer_middleware(LogMiddleware(logger))
     dp.update.outer_middleware(StorageMiddleware(PgRedisStorage, pgcred, redcred))
+    dp.update.outer_middleware(AgreementMiddleware())
     dp.update.outer_middleware(AuthMiddleware())
 
 

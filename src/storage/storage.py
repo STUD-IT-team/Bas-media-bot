@@ -1,7 +1,12 @@
 from models import activist
 from models import event
+from models import telegram
 from uuid import UUID
 class BaseStorage:
+    def GetTelegramUserPersonalDataAgreement(self, chatID) -> telegram.TelegramUserAgreement:
+        raise NotImplementedError
+    def SetTelegramUserPersonalDataAgreement(self, agreement: telegram.TelegramUserAgreement):
+        raise NotImplementedError
     def GetActivistByChatID(self, chatID : int) -> activist.Activist:
         raise NotImplementedError
     def GetActivistByID(self, ID : UUID):
