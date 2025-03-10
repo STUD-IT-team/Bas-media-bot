@@ -1,9 +1,11 @@
 from pydantic import BaseModel
 from storage.storage import BaseStorage
 from models.activist import Activist, Admin
-from models.event import Event
+from models.event import Event, EventActivist, EventChief
 from uuid import UUID
+from psycopg2.extras import RealDictCursor
 import psycopg2
+
 import redis
 
 class PostgresCredentials(BaseModel):
@@ -149,7 +151,84 @@ class PgRedisStorage(BaseStorage):
             return act
         return None
 
+    
+    def GetActiveEvents(self) -> list[Event]:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+
+        # Ура, хоть раз в жизни anti-join пригодился @Impervguin
+        cur.execute("""
+            SELECT id, evname, evdate, place, photo_amount, video_amount, created_by, created_at
+            FROM event
+            WHERE NOT EXISTS (
+                SELECT *
+                FROM completed_event
+                WHERE event_id = event.id
+            ) AND NOT EXISTS (
+                SELECT *
+                FROM canceled_event
+                WHERE event_id = event.id
+            )
+        """)
+
+        rows = cur.fetchall()
+        cur.close()
+        events = []
+        for row in rows:
+            eventID = UUID(hex=row['id'])
+            chief = self.getEventChief(eventID)
+            activists = self.getEventMembers(eventID)
+            event = Event(
+                ID = eventID,
+                Name=row['evname'], 
+                Date=row['evdate'], 
+                Place=row['place'],
+                PhotoCount=row['photo_amount'], 
+                VideoCount=row['video_amount'], 
+                Chief=chief, 
+                Activists=activists,
+                CreatedAt=row['created_at'],
+                CreatedBy=UUID(hex=row['created_by']),
+            )
+            events.append(event)
+        return events
+    def getEventChief(self, eventID) -> EventChief:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute("""
+            SELECT activist.id as acid, event_member.id as eid, chat_id, acname, valid
+            FROM activist
+            JOIN event_member ON event_member.activist_id = activist.id
+            JOIN tg_user ON tg_user.id = activist.tg_user_id
+            WHERE event_id = %s AND is_chief = true;
+        """, (eventID.hex,))
+
+        row = cur.fetchone()
+        cur.close()
         
+        if row:
+            act = Activist(ID=row['acid'], ChatID=row['chat_id'], Name=row['acname'], Valid=row['valid'])
+            return EventChief(ID=row['eid'], EventID=eventID, Activist=act)
+        return None
+    
+    def getEventMembers(self, eventID) -> list[EventActivist]:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute("""
+            SELECT activist.id as acid, event_member.id as eid, chat_id, acname, valid
+            FROM activist
+            JOIN event_member ON event_member.activist_id = activist.id
+            JOIN tg_user ON tg_user.id = activist.tg_user_id
+            WHERE event_id = %s AND is_chief = false;
+        """, (eventID.hex,))
+
+        rows = cur.fetchall()
+        cur.close()
+        
+        acts = []
+        for row in rows:
+            act = Activist(ID=row['acid'], ChatID=row['chat_id'], Name=row['acname'], Valid=row['valid'])
+            acts.append(EventActivist(ID=row['eid'], EventID=eventID, Activist=act))
+        return acts
 
 
 
