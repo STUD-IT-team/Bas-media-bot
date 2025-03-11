@@ -26,4 +26,8 @@ class BaseStorage:
     
     def GetActivistByName(self, name : str) -> activist.Activist:
         raise NotImplementedError
+    
+    def GetActiveEvents(self) -> list[event.Event] :
+        raise NotImplementedError
+        
 
