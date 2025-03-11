@@ -31,7 +31,7 @@ class AuthMiddleware(BaseMiddleware):
         
         state = data['state']
         # Для проверки на изменение статуса активиста
-        userType = (await state.get_data()).get('user-type', None) 
+        userType = (await state.get_data()).get('user-type', None)
 
         
         message = event.message
