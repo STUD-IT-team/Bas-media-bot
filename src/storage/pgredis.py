@@ -277,6 +277,18 @@ class PgRedisStorage(BaseStorage):
             tguser = TgUser(ID=row[0], ChatID=row[1], Username=row[2], Agreed=row[3])
             return tguser
         return None
+    
+    def GetTgUserByUName(self, username : str):
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT id, chat_id, tg_username, agreed FROM tg_user WHERE tg_username = %s;
+        """, (username,))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            tguser = TgUser(ID=row[0], ChatID=row[1], Username=row[2], Agreed=row[3])
+            return tguser
+        return None
 
     def PutActivist(self, tg_user_id : UUID, acname : str) -> Activist:
         cur = self.conn.cursor()

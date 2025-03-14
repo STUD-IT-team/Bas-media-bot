@@ -24,22 +24,34 @@ async def AdminEnteringName(message : Message, storage : BaseStorage, state : FS
 
     await state.update_data(data)
     await state.set_state(AdminNewMemberStates.EnteringTelegramID)
-    tmptext = """Введите Telegram ID пользователя (Telegram ID — это некоторое число. Для его получения нужно воспользоваться ботом (например, @GetChatID_IL_BOT))"""
+    # tmptext = """Введите Telegram ID пользователя (Telegram ID — это некоторое число. Для его получения нужно воспользоваться ботом (например, @GetChatID_IL_BOT))"""
+    tmptext = "Введите никнейм пользователя: "
     await message.answer(tmptext, reply_markup=ReplyKeyboardRemove())
 
+import re
 
 @AdminNewMemberRouter.message(AdminNewMemberStates.EnteringTelegramID)
 async def AdminEnteringId(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
-    try:
-        chat_id = int(message.text)
-    except Exception as e:
-        await message.answer(f"Telegram ID пользователя должен быть как минимум числом.")
+    username = re.search(r'@(\w+)', message.text)
+    if username is None:
+        await message.answer(f"Никнейм должен начинаться с @")
         return
 
-    tguser = storage.GetTgUser(chat_id)
+    tguser = storage.GetTgUserByUName(username.group(1))
     if tguser is None or not tguser.Agreed:
         await message.answer(f"Для добавления активиста, он должен согласиться на сбор и обработку своих персональных данных согласно закону 152-ФЗ")
         return
+    
+    # try:
+    #     chat_id = int(message.text)
+    # except Exception as e:
+    #     await message.answer(f"Telegram ID пользователя должен быть как минимум числом.")
+    #     return
+
+    # tguser = storage.GetTgUser(chat_id)
+    # if tguser is None or not tguser.Agreed:
+    #     await message.answer(f"Для добавления активиста, он должен согласиться на сбор и обработку своих персональных данных согласно закону 152-ФЗ")
+    #     return
 
     
     data = await state.get_data()

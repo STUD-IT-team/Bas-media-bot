@@ -22,10 +22,15 @@ values (gen_random_uuid(), (select id from tg_user where tg_username = 'Purummm'
 
 insert into tg_user (id, chat_id, tg_username, agreed)
 values (gen_random_uuid(), 1, 'X', True)
+
 insert into tg_user (id, chat_id, tg_username, agreed)
 values (gen_random_uuid(), 2, 'Y', True)
+
 insert into tg_user (id, chat_id, tg_username, agreed)
 values (gen_random_uuid(), 3, 'Z', True)
+
+insert into tg_user (id, chat_id, tg_username, agreed)
+values (gen_random_uuid(), 4, 'F', True)
 
 
 insert into activist (id, tg_user_id, acname, valid)
@@ -45,4 +50,7 @@ from activist join tg_user
 on tg_user.id = activist.tg_user_id
 where tg_user_id = '1a86f375-cc02-439b-9fea-7e10927e25dd'
 
+
+
+SELECT id, chat_id, tg_username, agreed FROM tg_user WHERE tg_username = 'r'
 
