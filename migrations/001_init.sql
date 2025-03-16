@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE TABLE IF NOT EXISTS tg_user (
+CREATE TABLE IF NOT EXISTS tg_user ( --пользователь телеги
   id UUID PRIMARY KEY,
   chat_id BIGINT,
   tg_username VARCHAR(127),
@@ -9,14 +9,14 @@ CREATE TABLE IF NOT EXISTS tg_user (
   CONSTRAINT tg_user_chat_id_notnull CHECK (chat_id IS NOT NULL)
 );
 
-CREATE TABLE IF NOT EXISTS tg_admin (
+CREATE TABLE IF NOT EXISTS tg_admin ( --админ бота
   id UUID PRIMARY KEY,
-  tg_user_id UUID,
+  tg_user_id UUID, --айди юзера в телеге
   CONSTRAINT tg_admin_user_id_notnull CHECK (tg_user_id IS NOT NULL),
   CONSTRAINT tg_admin_user_id FOREIGN KEY (tg_user_id) REFERENCES tg_user (id)
 );
 
-CREATE TABLE IF NOT EXISTS activist (
+CREATE TABLE IF NOT EXISTS activist ( --активист
   id UUID PRIMARY KEY,
   tg_user_id UUID,
   acname VARCHAR(127),
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS activist (
   CONSTRAINT valid_notnull CHECK (valid IS NOT NULL)
 );
 
-CREATE TABLE IF NOT EXISTS event (
+CREATE TABLE IF NOT EXISTS event ( --мероприятие
   id UUID PRIMARY KEY,
   evname VARCHAR(255),
   evdate TIMESTAMP,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS event (
   CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL)
 );
 
-CREATE TABLE IF NOT EXISTS event_member (
+CREATE TABLE IF NOT EXISTS event_member ( --участник мероприятия
   id UUID PRIMARY KEY,
   event_id UUID,
   activist_id UUID,
@@ -69,7 +69,7 @@ WHERE
 
 CREATE TYPE url_type AS ENUM('disk.yandex');
 
-CREATE TABLE IF NOT EXISTS report (
+CREATE TABLE IF NOT EXISTS report ( --отчёт
   id UUID PRIMARY KEY,
   event_member_id UUID,
   url VARCHAR(255),
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS report (
   CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL)
 );
 
-CREATE TABLE canceled_event (
+CREATE TABLE canceled_event ( --отменённое мероприятие
   event_id UUID PRIMARY KEY,
   canceled_by UUID,
   canceled_at TIMESTAMP,
@@ -91,7 +91,7 @@ CREATE TABLE canceled_event (
   CONSTRAINT canceled_by_fkey FOREIGN KEY (canceled_by) REFERENCES activist (id)
 );
 
-CREATE TABLE completed_event (
+CREATE TABLE completed_event ( --завершённое мероприятие
   event_id UUID PRIMARY KEY,
   completed_by UUID,
   completed_at TIMESTAMP,
@@ -100,7 +100,7 @@ CREATE TABLE completed_event (
   CONSTRAINT completed_by_fkey FOREIGN KEY (completed_by) REFERENCES activist (id)
 );
 
-CREATE TABLE notification (
+CREATE TABLE notification ( --уведомление
   id UUID PRIMARY KEY,
   send_time TIMESTAMP,
   send_to UUID,

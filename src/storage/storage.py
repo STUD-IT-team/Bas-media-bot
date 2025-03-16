@@ -30,4 +30,6 @@ class BaseStorage:
     def GetActiveEvents(self) -> list[event.Event] :
         raise NotImplementedError
         
+    def GetEventsByActivist(self, ActivistID) -> list[event.Event]:
+        raise NotImplementedError
 
