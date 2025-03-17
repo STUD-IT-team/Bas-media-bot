@@ -99,9 +99,9 @@ async def AdminEnterVideoCount(message: Message, storage: BaseStorage, state: FS
         raise ValueError("Negative amount input")
     acts = storage.GetValidActivists()
     if len(acts) == 0:
-        act = storage.GetActivistByChatID(message.chat.id)
+        admin = storage.GetAdminByChatID(message.chat.id)
         await message.answer(f"Нет активистов, которые могут участвовать в мероприятии.")
-        await TransitToAdminDefault(message=message, state=state, act=act)
+        await TransitToAdminDefault(message=message, state=state, admin=admin)
         raise Exception("No valid activists")
 
     keyb = MemberChoosingKeyboard(acts)
@@ -142,9 +142,9 @@ async def AdminEnterMembers(message: Message, storage: BaseStorage, state: FSMCo
             await PutEvent(storage, state, creator)
         except BaseException as e:
             await message.answer(f"Произошла ошибка при создании мероприятия.")
-        act = storage.GetActivistByChatID(message.chat.id)
+        admin = storage.GetAdminByChatID(message.chat.id)
         await message.answer(f"Мероприятие {data['event-name']} успешно создано!")
-        await TransitToAdminDefault(message=message, state=state, activist=act)
+        await TransitToAdminDefault(message=message, state=state, admin=admin)
         return
     else:
         activistName = message.text

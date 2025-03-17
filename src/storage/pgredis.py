@@ -61,6 +61,7 @@ class PgRedisStorage(BaseStorage):
         if row:
             agreement = TelegramUserAgreement(ChatID=row[0], Username=row[1], Agreed=row[2])
             try:
+                self.redis.delete(str(chatID))
                 self.redis.set(name=str(chatID), value=agreement.model_dump_json())
             finally:
                 return agreement
@@ -77,6 +78,7 @@ class PgRedisStorage(BaseStorage):
         cur.close()
 
         try:
+            self.redis.delete(str(chatID))
             self.redis.set(name=str(chatID), value=agreement.model_dump_json())
         finally:
             return
@@ -121,7 +123,7 @@ class PgRedisStorage(BaseStorage):
         cur = self.conn.cursor()
 
         cur.execute("""
-            SELECT tg_admin.id, chat_id FROM tg_admin JOIN tg_user ON tg_user.id = tg_admin.tg_user_id WHERE chat_id = %s;
+            SELECT tg_admin.id, tg_user.chat_id, tg_user.tg_username, tg_admin.adname, tg_admin.valid FROM tg_admin JOIN tg_user ON tg_user.id = tg_admin.tg_user_id WHERE chat_id = %s;
         """, (chatID,))
 
         row = cur.fetchone()
@@ -129,7 +131,7 @@ class PgRedisStorage(BaseStorage):
         
         adm = None
         if row:
-            adm = Admin(ID=row[0], ChatID=row[1])
+            adm = Admin(ID=row[0], ChatID=row[1], UserName=row[2], Name=row[3], Valid=row[4])
         return adm
     
     def PutEvent(self, event: Event):

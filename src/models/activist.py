@@ -9,5 +9,8 @@ class Activist(BaseModel):
 
 class Admin(BaseModel):
     ID : UUID
+    UserName : str
+    Name : str
     ChatID : int
+    Valid : bool
     

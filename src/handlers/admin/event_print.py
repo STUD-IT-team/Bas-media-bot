@@ -32,8 +32,8 @@ async def AdminPrintEvents(message: Message, storage: BaseStorage, state: FSMCon
         <b>Количество активистов:</b> {len(event.Activists)}
         {'\n'.join([str(i + 1) + '. ' + event.Activists[i].Activist.Name for i in range(len(event.Activists))])}
         """)
-    act = storage.GetActivistByChatID(message.chat.id)
-    await TransitToAdminDefault(message, state, act)
+    admin = storage.GetAdminByChatID(message.chat.id)
+    await TransitToAdminDefault(message, state, admin)
 
 
 
