@@ -40,4 +40,4 @@ async def AdminUnknown(message : Message, storage : BaseStorage, state : FSMCont
     await message.answer("Не понял введённую команду")
     admin = storage.GetAdminByChatID(message.chat.id)
     if admin is not None:
-        await message.answer(f"Админ, {admin.Name}! Что хотите сделать?", reply_markup=AdminDefaultKeyboard.Сreate())
+        await message.answer(f"Админ, {admin.Name}! Что хотите сделать?", reply_markup=AdminDefaultKeyboard.Create())

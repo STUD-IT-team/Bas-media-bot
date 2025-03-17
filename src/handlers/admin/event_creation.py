@@ -4,6 +4,7 @@ from handlers.state import AdminEventCreatingStates
 from handlers.usertransition import TransitToAdminDefault
 from keyboards.default.admin import AdminDefaultKeyboard
 from keyboards.activist.choosing import MemberChoosingCancelKeyboard, MemberChoosingKeyboard
+from keyboards.confirmation.yesno import YesNoKeyboard
 from datetime import datetime
 
 from uuid import UUID, uuid4
@@ -13,10 +14,10 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from storage.storage import BaseStorage
 from logging import Logger
+from aiogram import F
 
 
 AdminEventCreatingRouter = Router()
-
 
 async def TransitToAdminCreatingEvent(message: Message, state: FSMContext):
     await state.set_state(AdminEventCreatingStates.EnteringName)
@@ -133,35 +134,81 @@ async def AdminEnterChief(message: Message, storage: BaseStorage, state: FSMCont
     
 
 
+@AdminEventCreatingRouter.message(
+    AdminEventCreatingStates.ChoosingMembers,
+    F.text == MemberChoosingCancelKeyboard.StopActivistChoosingButtonText
+)
+async def AdminEnterMembersStop(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
+    data = await state.get_data()
+    eventName = data["event-name"]
+    eventDate = data["event-date"]
+    eventPlace = data["event-place"]
+    eventPhotoCount = data["photo-count"]
+    eventVideoCount = data["video-count"]
+    logger.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa")
+    eventChiefID = UUID(hex=data["event-chief"])
+    eventActivistsIds = [UUID(hex=actID) for actID in data["event-activists"]]
+
+    eventChief = storage.GetActivistByID(eventChiefID)
+    eventActivists = [storage.GetActivistByID(actID) for actID in eventActivistsIds]
+    await message.answer(
+        f"""<b>Название:</b> {eventName}
+<b>Дата:</b> {eventDate}
+<b>Место проведения:</b> {eventPlace}
+<b>Количество фотографий:</b> {eventPhotoCount}
+<b>Количество видео:</b> {eventVideoCount}
+<b>Главный активист:</b> {eventChief.Name}
+<b>Активисты:</b>
+{'\n'.join([str(i + 1) + '. ' + eventActivists[i].Name for i in range(len(eventActivists))])}
+
+Данные верны?""",
+        reply_markup=YesNoKeyboard.Create()
+    )
+    await state.set_state(AdminEventCreatingStates.Confirmation)
+
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.ChoosingMembers)
 async def AdminEnterMembers(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
     data = await state.get_data()
-    if message.text == MemberChoosingCancelKeyboard.StopActivistChoosingButtonText:
-        creator = storage.GetAdminByChatID(message.chat.id)
-        try:
-            await PutEvent(storage, state, creator)
-        except BaseException as e:
-            await message.answer(f"Произошла ошибка при создании мероприятия.")
-        admin = storage.GetAdminByChatID(message.chat.id)
-        await message.answer(f"Мероприятие {data['event-name']} успешно создано!")
-        await TransitToAdminDefault(message=message, state=state, admin=admin)
-        return
-    else:
-        activistName = message.text
-        act = storage.GetActivistByName(activistName)
-        if act is None:
-            await message.answer(f"Активист с именем {activistName} не найден.")
-            acts = storage.GetValidActivists()
-            keyb = MemberChoosingCancelKeyboard(acts, exceptIDs=([UUID(hex=data["event-chief"])] + [UUID(hex=actID) for actID in data["event-activists"]]))
-            await message.answer(f"Выберите активистов", reply_markup=keyb.Create())
-            raise ValueError(f"Activist {activistName} not found")
-        
-        
-        data["event-activists"].append(act.ID.hex)
+    activistName = message.text
+    act = storage.GetActivistByName(activistName)
+    if act is None:
+        await message.answer(f"Активист с именем {activistName} не найден.")
         acts = storage.GetValidActivists()
         keyb = MemberChoosingCancelKeyboard(acts, exceptIDs=([UUID(hex=data["event-chief"])] + [UUID(hex=actID) for actID in data["event-activists"]]))
-        await state.update_data(data)
-        await message.answer(f"Выберите еще активистов", reply_markup=keyb.Create())
+        await message.answer(f"Выберите активистов", reply_markup=keyb.Create())
+        raise ValueError(f"Activist {activistName} not found")
+    
+    data["event-activists"].append(act.ID.hex)
+    acts = storage.GetValidActivists()
+    keyb = MemberChoosingCancelKeyboard(acts, exceptIDs=([UUID(hex=data["event-chief"])] + [UUID(hex=actID) for actID in data["event-activists"]]))
+    await state.update_data(data)
+    await message.answer(f"Выберите еще активистов", reply_markup=keyb.Create())
+
+@AdminEventCreatingRouter.message(
+    AdminEventCreatingStates.Confirmation,
+    F.text == YesNoKeyboard.YesButtonText
+)
+async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
+    data = await state.get_data()
+    creator = storage.GetAdminByChatID(message.chat.id)
+    try:
+        await PutEvent(storage, state, creator)
+    except BaseException as e:
+        await message.answer(f"Произошла ошибка при создании мероприятия.")
+    admin = storage.GetAdminByChatID(message.chat.id)
+    await message.answer(f"Мероприятие {data['event-name']} успешно создано!")
+    await TransitToAdminDefault(message=message, state=state, admin=admin)
+
+
+@AdminEventCreatingRouter.message(
+    AdminEventCreatingStates.Confirmation,
+    F.text == YesNoKeyboard.NoButtonText
+)
+async def AdminCanceledEvent(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
+    admin = storage.GetAdminByChatID(message.chat.id)
+    await message.answer(f"Мероприятие не создано.")
+    await TransitToAdminDefault(message=message, state=state, admin=admin)
+
 
 async def PutEvent(storage: BaseStorage, state: FSMContext, creator: Admin):
     data = await state.get_data()

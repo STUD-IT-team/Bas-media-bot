@@ -19,6 +19,7 @@ class AdminEventCreatingStates(StatesGroup):
     EnteringVideoCount = State()
     ChoosingMembers = State()
     ChoosingChief = State()
+    Confirmation = State()
 
 class AdminTaskCancellingStates(StatesGroup):
     ChoosingReport = State()

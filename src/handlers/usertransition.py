@@ -16,14 +16,14 @@ async def TransitToMemberDefault(message: Message, state: FSMContext, activist: 
     await state.clear()
     await state.set_data({"user-type": "activist"})
     await state.set_state(MemberStates.Default)
-    await message.answer(f"Активист, {activist.Name}! Что хотите сделать?", reply_markup=MemberDefaultKeyboard.Сreate())
+    await message.answer(f"Активист, {activist.Name}! Что хотите сделать?", reply_markup=MemberDefaultKeyboard.Create())
 
 
 async def TransitToAdminDefault(message: Message, state: FSMContext, admin: Admin):
     await state.clear()
     await state.set_data({"user-type": "admin"})
     await state.set_state(AdminStates.Default)
-    await message.answer(f"Админ, {admin.Name}! Что хотите сделать?", reply_markup=AdminDefaultKeyboard.Сreate())
+    await message.answer(f"Админ, {admin.Name}! Что хотите сделать?", reply_markup=AdminDefaultKeyboard.Create())
 
 async def TransitToUnauthorized(message: Message, state: FSMContext):
     await state.clear()

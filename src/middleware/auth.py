@@ -43,9 +43,6 @@ class AuthMiddleware(BaseMiddleware):
             await message.answer(f"Не удалось проверить вашу авторизацию, повторите позднее")
             raise
 
-        logger.info(f"admin: {admin}")
-        logger.info(f"activist: {activist}")
-
         if (activist is None or not activist.Valid) and (admin is None or not admin.Valid):
             await TransitToUnauthorized(message=message, state=state)
             raise UnauthorizedError()
