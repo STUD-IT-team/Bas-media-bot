@@ -41,3 +41,19 @@ class CancelAddMemberKeyboard:
             resize_keyboard=True,
             one_time_keyboard=False
         )
+    
+
+class YesNoKeyboard:
+    YesButtonText = "Да"
+    NoButtonText = "Нет"
+
+    @staticmethod
+    def Create():
+        return ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(text=__class__.YesButtonText)],
+                [KeyboardButton(text=__class__.NoButtonText)],
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=False
+        )

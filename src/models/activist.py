@@ -16,3 +16,12 @@ class TgUser(BaseModel):
     ChatID : int
     Username : str
     Agreed : bool
+
+class TgUserActivist(BaseModel):
+    IdTgUser : UUID
+    IdActivist : UUID
+    ChatID : int
+    Username : str
+    Name : str
+    Valid : bool
+    Agreed : bool

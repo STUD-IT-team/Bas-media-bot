@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from pydantic_core import from_json
 from storage.storage import BaseStorage
-from models.activist import Activist, Admin, TgUser
+from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief
 from models.telegram import TelegramUserAgreement
 from uuid import UUID
@@ -80,7 +80,6 @@ class PgRedisStorage(BaseStorage):
             self.redis.set(name=str(chatID), value=agreement.model_dump_json())
         finally:
             return
-
 
     def PutTgUser(self, chat_id : int, username : str):
         cur = self.conn.cursor()
@@ -166,7 +165,10 @@ class PgRedisStorage(BaseStorage):
         cur = self.conn.cursor()
 
         cur.execute("""
-            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE valid = true;
+            SELECT activist.id, chat_id, acname, valid 
+            FROM activist JOIN tg_user 
+            ON tg_user.id = activist.tg_user_id 
+            WHERE valid = true;
         """)
 
         rows = cur.fetchall()
@@ -175,6 +177,23 @@ class PgRedisStorage(BaseStorage):
         acts = []
         for row in rows:
             acts.append(Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3]))
+        return acts
+
+    def GetValidTgUserActivist(self) -> list[TgUserActivist]:
+        cur = self.conn.cursor()
+        cur.execute("""
+            select tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
+            from tg_user tu join activist ac 
+            on tu.id = ac.tg_user_id
+            where ac.valid = true;
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        acts = []
+        for row in rows:
+            acts.append(TgUserActivist(IdTgUser=row[0], IdActivist=row[1], 
+                                       ChatID=row[2], Username=row[3],
+                                       Name=row[4], Valid=row[5], Agreed=row[6]))
         return acts
 
     def GetActivistByName(self, name : str) -> Activist:
@@ -190,7 +209,6 @@ class PgRedisStorage(BaseStorage):
             return act
         return None
 
-    
     def GetActiveEvents(self) -> list[Event]:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
 
@@ -230,6 +248,7 @@ class PgRedisStorage(BaseStorage):
             )
             events.append(event)
         return events
+    
     def getEventChief(self, eventID) -> EventChief:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
 
@@ -284,7 +303,9 @@ class PgRedisStorage(BaseStorage):
     def GetTgUserByUName(self, username : str):
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT id, chat_id, tg_username, agreed FROM tg_user WHERE tg_username = %s;
+            SELECT id, chat_id, tg_username, agreed 
+            FROM tg_user 
+            WHERE tg_username = %s;
         """, (username,))
         row = cur.fetchone()
         cur.close()
@@ -317,4 +338,13 @@ class PgRedisStorage(BaseStorage):
         self.conn.commit()
         cur.close()
 
-
+    def MakeInvalidActivist(self, id_activist : UUID):
+        cur = self.conn.cursor()
+        cur.execute(f"""
+            update activist
+            set valid = FALSE
+            where id = '{id_activist}'
+        """)
+        self.conn.commit()
+        cur.close()
+        
