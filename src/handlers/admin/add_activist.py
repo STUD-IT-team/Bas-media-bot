@@ -21,7 +21,8 @@ async def TransitToAdminNewMember(message : Message, storage : BaseStorage, stat
     await message.answer(tmptext, reply_markup=CancelAddMemberKeyboard.Create())
 
 @AdminNewMemberRouter.message(
-    F.text == CancelAddMemberKeyboard.CancelAddMemberButtonText,
+    AdminNewMemberStates.EnteringTelegramID or AdminNewMemberStates.EnteringName,
+    F.text == CancelAddMemberKeyboard.CancelAddMemberButtonText
 )
 async def AdminCancelAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     act = storage.GetActivistByChatID(message.chat.id)
@@ -33,11 +34,23 @@ async def AdminEnteringId(message : Message, storage : BaseStorage, state : FSMC
     username = re.search(r'@(\w+)', message.text)
     if username is None:
         await message.answer(f"Никнейм должен начинаться с @")
+        tmptext = "Введите никнейм пользователя (в формате @name): "
+        await message.answer(tmptext, reply_markup=CancelAddMemberKeyboard.Create())
         return
     tguser = storage.GetTgUserByUName(username.group(1))
     if tguser is None or not tguser.Agreed:
         await message.answer(f"Для добавления пользователя, он должен написать боту и согласиться на обработку персональных данных")
+        act = storage.GetActivistByChatID(message.chat.id)
+        await TransitToAdminDefault(message=message, state=state, activist=act)
         return
+    
+    activist = storage.GetActivistByTgUserID(tguser.ID)
+    if activist:
+        await message.answer(f"Пользователь с ником @{tguser.Username} уже добавлен, его зовут {activist.Name}.")
+        act = storage.GetActivistByChatID(message.chat.id)
+        await TransitToAdminDefault(message=message, state=state, activist=act)
+        return
+
     data = await state.get_data()
     data["tgID"] = str(tguser.ID)
     await state.update_data(data)
@@ -50,11 +63,8 @@ async def AdminEnteringName(message : Message, storage : BaseStorage, state : FS
     data = await state.get_data()
     data["acname"] = message.text
 
-    activist = storage.PutActivist(UUID(data["tgID"]), data["acname"])
-    if activist:
-        await message.answer(f"Пользователь с таким Telegram ID уже добавлен, его зовут {activist.Name}.")
-    else:
-        await message.answer(f"Пользователь {data["acname"]} добавлен.")
+    storage.PutActivist(UUID(data["tgID"]), data["acname"])
+    await message.answer(f"Пользователь {data["acname"]} добавлен.")
 
     act = storage.GetActivistByChatID(message.chat.id)
     await TransitToAdminDefault(message=message, state=state, activist=act)

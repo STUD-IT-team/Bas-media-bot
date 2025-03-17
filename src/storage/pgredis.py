@@ -108,7 +108,10 @@ class PgRedisStorage(BaseStorage):
     def GetActivistByID(self, ID : UUID):
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE activist.id = %s AND valid = true;
+            SELECT activist.id, chat_id, acname, valid 
+            FROM activist JOIN tg_user 
+            ON tg_user.id = activist.tg_user_id 
+            WHERE activist.id = %s AND valid = true;
         """, (ID.hex,))
         row = cur.fetchone()
         cur.close()
@@ -290,28 +293,28 @@ class PgRedisStorage(BaseStorage):
             return tguser
         return None
 
-    def PutActivist(self, tg_user_id : UUID, acname : str) -> Activist:
+    def GetActivistByTgUserID(self, tg_user_id : UUID):
         cur = self.conn.cursor()
-        print("here 0")
         cur.execute("""
             select activist.id, chat_id, acname, valid
             from activist join tg_user
             on tg_user.id = activist.tg_user_id
             where tg_user_id = %s
         """, (tg_user_id.hex, ))
-        print("here 1")
         row = cur.fetchone()
+        cur.close()
         if row:
-            cur.close()
             return Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
-        print("here 2")
+        return None
+
+    def PutActivist(self, tg_user_id : UUID, acname : str) -> Activist:
+        cur = self.conn.cursor()
         cur.execute("""
             insert into activist (id, tg_user_id, acname, valid)
             values (gen_random_uuid(), %s, %s, True)
         """, (tg_user_id.hex, acname))
-        print("here 3")
+
         self.conn.commit()
         cur.close()
-        return None
 
 
