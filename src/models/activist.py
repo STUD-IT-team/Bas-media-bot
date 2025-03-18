@@ -10,4 +10,9 @@ class Activist(BaseModel):
 class Admin(BaseModel):
     ID : UUID
     ChatID : int
-    
+
+class TgUser(BaseModel):
+    ID : UUID
+    ChatID : int
+    Username : str
+    Agreed : bool

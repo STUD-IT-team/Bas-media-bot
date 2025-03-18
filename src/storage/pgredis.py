@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from pydantic_core import from_json
 from storage.storage import BaseStorage
-from models.activist import Activist, Admin
+from models.activist import Activist, Admin, TgUser
 from models.event import Event, EventActivist, EventChief
 from models.telegram import TelegramUserAgreement
 from uuid import UUID
@@ -108,7 +108,10 @@ class PgRedisStorage(BaseStorage):
     def GetActivistByID(self, ID : UUID):
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE activist.id = %s AND valid = true;
+            SELECT activist.id, chat_id, acname, valid 
+            FROM activist JOIN tg_user 
+            ON tg_user.id = activist.tg_user_id 
+            WHERE activist.id = %s AND valid = true;
         """, (ID.hex,))
         row = cur.fetchone()
         cur.close()
@@ -266,5 +269,52 @@ class PgRedisStorage(BaseStorage):
             acts.append(EventActivist(ID=row['eid'], EventID=eventID, Activist=act))
         return acts
 
+    def GetTgUser(self, chatID : int):
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT id, chat_id, tg_username, agreed FROM tg_user WHERE chat_id = %s;
+        """, (chatID,))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            tguser = TgUser(ID=row[0], ChatID=row[1], Username=row[2], Agreed=row[3])
+            return tguser
+        return None
+    
+    def GetTgUserByUName(self, username : str):
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT id, chat_id, tg_username, agreed FROM tg_user WHERE tg_username = %s;
+        """, (username,))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            tguser = TgUser(ID=row[0], ChatID=row[1], Username=row[2], Agreed=row[3])
+            return tguser
+        return None
+
+    def GetActivistByTgUserID(self, tg_user_id : UUID):
+        cur = self.conn.cursor()
+        cur.execute("""
+            select activist.id, chat_id, acname, valid
+            from activist join tg_user
+            on tg_user.id = activist.tg_user_id
+            where tg_user_id = %s
+        """, (tg_user_id.hex, ))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            return Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
+        return None
+
+    def PutActivist(self, tg_user_id : UUID, acname : str) -> Activist:
+        cur = self.conn.cursor()
+        cur.execute("""
+            insert into activist (id, tg_user_id, acname, valid)
+            values (gen_random_uuid(), %s, %s, True)
+        """, (tg_user_id.hex, acname))
+
+        self.conn.commit()
+        cur.close()
 
 

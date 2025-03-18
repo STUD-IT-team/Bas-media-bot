@@ -27,3 +27,17 @@ class AdminDefaultKeyboard:
             resize_keyboard=True,
             one_time_keyboard=False
         )
+    
+
+class CancelAddMemberKeyboard:
+    CancelAddMemberButtonText = "Отмена"
+
+    @staticmethod
+    def Create():
+        return ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(text=__class__.CancelAddMemberButtonText)],
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=False
+        )

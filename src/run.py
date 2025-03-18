@@ -15,6 +15,7 @@ from aiogram.enums import ParseMode
 from handlers.unknown import UnknownRouter
 from handlers.admin.default import AdminDefaultRouter
 from handlers.admin.event_creation import AdminEventCreatingRouter
+from handlers.admin.add_activist import AdminNewMemberRouter
 from handlers.member.default import MemberDefaultRouter
 
 
@@ -56,6 +57,7 @@ if __name__ == "__main__":
     bot = Bot(token=GetBotTokenEnv(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher(storage=RedisStorage.from_url(f"redis://{redcred.user}:{redcred.password}@{redcred.host}:{redcred.port}/1"))
     
+    dp.include_router(AdminNewMemberRouter)
     dp.include_router(AdminEventCreatingRouter)
     dp.include_router(AdminDefaultRouter)
     dp.include_router(MemberDefaultRouter)
