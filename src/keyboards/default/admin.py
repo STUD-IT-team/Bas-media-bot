@@ -56,4 +56,3 @@ class YesNoKeyboard:
             ],
             resize_keyboard=True,
             one_time_keyboard=False
-        )
