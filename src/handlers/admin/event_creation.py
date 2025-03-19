@@ -7,6 +7,7 @@ from keyboards.activist.choosing import MemberChoosingCancelKeyboard, MemberChoo
 from keyboards.confirmation.yesno import YesNoKeyboard
 from keyboards.confirmation.cancel import CancelKeyboard
 from datetime import datetime
+from utils.strings import EnumerateStrings, NewlineJoin
 
 from uuid import UUID, uuid4
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
@@ -160,19 +161,18 @@ async def AdminEnterMembersStop(message: Message, storage: BaseStorage, state: F
 
     eventChief = storage.GetActivistByID(eventChiefID)
     eventActivists = [storage.GetActivistByID(actID) for actID in eventActivistsIds]
-    await message.answer(
-        f"""<b>Название:</b> {eventName}
-<b>Дата:</b> {eventDate}
-<b>Место проведения:</b> {eventPlace}
-<b>Количество фотографий:</b> {eventPhotoCount}
-<b>Количество видео:</b> {eventVideoCount}
-<b>Главный активист:</b> {eventChief.Name}
-<b>Активисты:</b>
-{'\n'.join([str(i + 1) + '. ' + eventActivists[i].Name for i in range(len(eventActivists))])}
-
-Данные верны?""",
-        reply_markup=YesNoKeyboard.Create()
-    )
+    await message.answer(NewlineJoin(
+        f"<b>Название:</b> {eventName}",
+        f"<b>Дата:</b> {eventDate}",
+        f"<b>Место проведения:</b> {eventPlace}",
+        f"<b>Количество фотографий:</b> {eventPhotoCount}",
+        f"<b>Количество видео:</b> {eventVideoCount}",
+        f"<b>Главный активист:</b> {eventChief.Name}",
+        f"<b>Активисты:</b>",
+        *EnumerateStrings(*[act.Name for act in eventActivists]),
+        ""
+        "Данные верны?"
+    ), reply_markup=YesNoKeyboard.Create())
     await state.set_state(AdminEventCreatingStates.Confirmation)
 
 def GetNotChosenActivists(storage : BaseStorage, context : dict[str, any]) -> list[Activist]:
