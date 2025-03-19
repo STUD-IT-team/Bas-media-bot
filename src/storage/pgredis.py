@@ -136,29 +136,33 @@ class PgRedisStorage(BaseStorage):
     
     def PutEvent(self, event: Event):
         cur = self.conn.cursor()
-
-        cur.execute("""
-            INSERT INTO event (id, evname, evdate, place, photo_amount, video_amount, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
-        """, (event.ID.hex, event.Name, event.Date, event.Place, event.PhotoCount, event.VideoCount, event.CreatedBy.hex, event.CreatedAt))
-
-        if event.IsCancelled and isinstance(event, CancelledEvent):
+        try:
             cur.execute("""
-                INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
-            """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
-        elif event.IsCompleted and isinstance(event, CompletedEvent):
-            cur.execute("""
-                INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
-            """, (event.ID.hex, event.CompletedBy.hex, event.CompletedAt))
+                INSERT INTO event (id, evname, evdate, place, photo_amount, video_amount, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
+            """, (event.ID.hex, event.Name, event.Date, event.Place, event.PhotoCount, event.VideoCount, event.CreatedBy.hex, event.CreatedAt))
 
-        # Inserting activists
-        cur.execute("""
-            INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, true)
-        """, (event.ID.hex, event.Chief.Activist.ID.hex))
-        for act in event.Activists:
+            if event.IsCancelled and isinstance(event, CancelledEvent):
+                cur.execute("""
+                    INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
+                """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
+            elif event.IsCompleted and isinstance(event, CompletedEvent):
+                cur.execute("""
+                    INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
+                """, (event.ID.hex, event.CompletedBy.hex, event.CompletedAt))
+
+            # Inserting activists
             cur.execute("""
-                INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, false)
-            """, (event.ID.hex, act.Activist.ID.hex))
-        self.conn.commit()
+                INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, true)
+            """, (event.ID.hex, event.Chief.Activist.ID.hex))
+            for act in event.Activists:
+                cur.execute("""
+                    INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, false)
+                """, (event.ID.hex, act.Activist.ID.hex))
+            
+            self.conn.commit()
+        except psycopg2.Error:
+            self.conn.rollback()
+            raise
         cur.close()
 
     def GetValidActivists(self) -> list[Activist]:

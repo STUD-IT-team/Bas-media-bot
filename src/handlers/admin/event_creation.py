@@ -145,7 +145,7 @@ async def AdminEnterMembersStop(message: Message, storage: BaseStorage, state: F
     eventPlace = data["event-place"]
     eventPhotoCount = data["photo-count"]
     eventVideoCount = data["video-count"]
-    logger.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa")
+
     eventChiefID = UUID(hex=data["event-chief"])
     eventActivistsIds = [UUID(hex=actID) for actID in data["event-activists"]]
 
@@ -193,11 +193,12 @@ async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSM
     creator = storage.GetAdminByChatID(message.chat.id)
     try:
         await PutEvent(storage, state, creator)
+        await message.answer(f"Мероприятие {data['event-name']} успешно создано!")
     except BaseException as e:
+        # TODO: Подумать над более подробной обработкой ошибок
+        logger.error(f"Error occurred while creating event: {str(e)}")
         await message.answer(f"Произошла ошибка при создании мероприятия.")
-    admin = storage.GetAdminByChatID(message.chat.id)
-    await message.answer(f"Мероприятие {data['event-name']} успешно создано!")
-    await TransitToAdminDefault(message=message, state=state, admin=admin)
+    await TransitToAdminDefault(message=message, state=state, admin=creator)
 
 
 @AdminEventCreatingRouter.message(
