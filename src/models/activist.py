@@ -13,4 +13,9 @@ class Admin(BaseModel):
     Name : str
     ChatID : int
     Valid : bool
-    
+
+class TgUser(BaseModel):
+    ID : UUID
+    ChatID : int
+    Username : str
+    Agreed : bool

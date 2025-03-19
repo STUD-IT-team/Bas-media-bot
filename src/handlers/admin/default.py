@@ -3,6 +3,7 @@ from handlers.usertransition import TransitToAdminDefault
 from keyboards.default.admin import AdminDefaultKeyboard
 from handlers.admin.event_creation import TransitToAdminCreatingEvent
 from handlers.admin.event_print import AdminPrintEvents
+from handlers.admin.add_activist import TransitToAdminNewMember
 
 from aiogram import F
 from aiogram import Router
@@ -32,6 +33,13 @@ async def AdminAddEvent(message : Message, storage : BaseStorage, state : FSMCon
 async def AdminInfoEvent(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await AdminPrintEvents(message, storage, state, logger)
 
+
+@AdminDefaultRouter.message(
+    AdminStates.Default,
+    F.text == AdminDefaultKeyboard.AddMemberButtonText,
+)
+async def AdminAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
+    await TransitToAdminNewMember(message, storage, state, logger)
 
 @AdminDefaultRouter.message(
     AdminStates.Default,
