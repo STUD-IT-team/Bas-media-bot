@@ -11,7 +11,6 @@ from datetime import datetime
 from uuid import UUID, uuid4
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from aiogram import Router
-from aiogram.filters import or_f
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from storage.storage import BaseStorage
@@ -135,9 +134,9 @@ async def AdminEnterChief(message: Message, storage: BaseStorage, state: FSMCont
         raise ValueError(f"Chief {chiefName} not found")
     data["event-chief"] = act.ID.hex
     data["event-activists"] = []
-
-    acts = storage.GetValidActivists()
-    keyb = MemberChoosingCancelKeyboard(acts, exceptIDs=[act.ID])
+    
+    
+    keyb = MemberChoosingCancelKeyboard(GetNotChosenActivists(storage, data))
     await state.update_data(data)
     await state.set_state(AdminEventCreatingStates.ChoosingMembers)
     await message.answer(f"Выберите активистов", reply_markup=keyb.Create())
@@ -176,6 +175,13 @@ async def AdminEnterMembersStop(message: Message, storage: BaseStorage, state: F
     )
     await state.set_state(AdminEventCreatingStates.Confirmation)
 
+def GetNotChosenActivists(storage : BaseStorage, context : dict[str, any]) -> list[Activist]:
+    acts = storage.GetValidActivists()
+    chosenEventActivistsIds = [UUID(hex=actID) for actID in context["event-activists"]]
+    chosenEventActivistsIds.append(UUID(hex=context["event-chief"]))
+    acts = list(filter(lambda a: a.ID not in chosenEventActivistsIds, acts))
+    return acts
+
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.ChoosingMembers)
 async def AdminEnterMembers(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
     data = await state.get_data()
@@ -183,14 +189,13 @@ async def AdminEnterMembers(message: Message, storage: BaseStorage, state: FSMCo
     act = storage.GetActivistByName(activistName)
     if act is None:
         await message.answer(f"Активист с именем {activistName} не найден.")
-        acts = storage.GetValidActivists()
-        keyb = MemberChoosingCancelKeyboard(acts, exceptIDs=([UUID(hex=data["event-chief"])] + [UUID(hex=actID) for actID in data["event-activists"]]))
+        keyb = MemberChoosingCancelKeyboard(GetNotChosenActivists(storage, data))
         await message.answer(f"Выберите активистов", reply_markup=keyb.Create())
         raise ValueError(f"Activist {activistName} not found")
     
     data["event-activists"].append(act.ID.hex)
-    acts = storage.GetValidActivists()
-    keyb = MemberChoosingCancelKeyboard(acts, exceptIDs=([UUID(hex=data["event-chief"])] + [UUID(hex=actID) for actID in data["event-activists"]]))
+
+    keyb = MemberChoosingCancelKeyboard(GetNotChosenActivists(storage, data))
     await state.update_data(data)
     await message.answer(f"Выберите еще активистов", reply_markup=keyb.Create())
 
@@ -215,7 +220,7 @@ async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSM
     AdminEventCreatingStates.Confirmation,
     F.text == YesNoKeyboard.NoButtonText
 )
-async def AdminCanceledEvent(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
+async def AdminCanceledEventCreation(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
     admin = storage.GetAdminByChatID(message.chat.id)
     await message.answer(f"Мероприятие не создано.")
     await TransitToAdminDefault(message=message, state=state, admin=admin)

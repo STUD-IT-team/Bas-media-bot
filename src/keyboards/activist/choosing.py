@@ -26,7 +26,7 @@ class MemberChoosingKeyboard:
 
 class MemberChoosingCancelKeyboard:
     StopActivistChoosingButtonText = 'Закончить выбор активистов'
-    def __init__(self, activists: list[Activist], exceptIDs: list[UUID] = []):
+    def __init__(self, activists: list[Activist]):
         if not isinstance(activists, list):
             raise ValueError('activists must be a list')
         for act in activists:
@@ -35,19 +35,10 @@ class MemberChoosingCancelKeyboard:
 
         self.activists = activists
 
-        if not isinstance(exceptIDs, list):
-            raise ValueError('exceptIDs must be a list')
-        for exc in exceptIDs:
-            if not isinstance(exc, UUID):
-                raise ValueError('exceptIDs must contain instances of UUID')
-
-        self.exceptIDs = exceptIDs
-
     def Create(self) -> ReplyKeyboardMarkup:
         buttons = []
         for act in self.activists:
-            if act.ID not in self.exceptIDs:
-                buttons.append([KeyboardButton(text=act.Name)])
+            buttons.append([KeyboardButton(text=act.Name)])
         buttons.append([KeyboardButton(text=__class__.StopActivistChoosingButtonText)])
         buttons.append([KeyboardButton(text=CancelKeyboard.CancelButtonText)])
         return ReplyKeyboardMarkup(
