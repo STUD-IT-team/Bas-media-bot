@@ -1,5 +1,6 @@
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.types.keyboard_button import KeyboardButton
+from keyboards.confirmation.cancel import CancelKeyboard
 from models.activist import Activist
 from uuid import UUID
 
@@ -16,6 +17,7 @@ class MemberChoosingKeyboard:
         buttons = []
         for act in self.activists:
             buttons.append([KeyboardButton(text=act.Name)])
+        buttons.append([KeyboardButton(text=CancelKeyboard.CancelButtonText)])
         return ReplyKeyboardMarkup(
             keyboard=buttons,
             resize_keyboard=True,
@@ -47,6 +49,7 @@ class MemberChoosingCancelKeyboard:
             if act.ID not in self.exceptIDs:
                 buttons.append([KeyboardButton(text=act.Name)])
         buttons.append([KeyboardButton(text=__class__.StopActivistChoosingButtonText)])
+        buttons.append([KeyboardButton(text=CancelKeyboard.CancelButtonText)])
         return ReplyKeyboardMarkup(
             keyboard=buttons,
             resize_keyboard=True,

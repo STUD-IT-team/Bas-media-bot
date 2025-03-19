@@ -5,11 +5,13 @@ from handlers.usertransition import TransitToAdminDefault
 from keyboards.default.admin import AdminDefaultKeyboard
 from keyboards.activist.choosing import MemberChoosingCancelKeyboard, MemberChoosingKeyboard
 from keyboards.confirmation.yesno import YesNoKeyboard
+from keyboards.confirmation.cancel import CancelKeyboard
 from datetime import datetime
 
 from uuid import UUID, uuid4
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from aiogram import Router
+from aiogram.filters import or_f
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from storage.storage import BaseStorage
@@ -21,7 +23,7 @@ AdminEventCreatingRouter = Router()
 
 async def TransitToAdminCreatingEvent(message: Message, state: FSMContext):
     await state.set_state(AdminEventCreatingStates.EnteringName)
-    await message.answer("Введите название мероприятия:", reply_markup=ReplyKeyboardRemove())
+    await message.answer("Введите название мероприятия:", reply_markup=CancelKeyboard.Create())
 
 
 def GetTimeDateFormatDescription() -> str:
@@ -37,6 +39,14 @@ def ParseTimeDate(dtstr : str) -> (datetime, bool):
     except ValueError:
         return None, False
 
+@AdminEventCreatingRouter.message(
+    AdminEventCreatingStates(),
+    F.text == CancelKeyboard.CancelButtonText
+)
+async def AdminCancelCreatingEvent(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
+    admin = storage.GetAdminByChatID(message.chat.id)
+    await message.answer("Отмена создания мероприятия")
+    await TransitToAdminDefault(message, state, admin)
 
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.EnteringName)
 async def AdminCreateEvent(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
@@ -45,7 +55,7 @@ async def AdminCreateEvent(message: Message, storage: BaseStorage, state: FSMCon
 
     await state.update_data(data)
     await state.set_state(AdminEventCreatingStates.EnteringDate)
-    await message.answer(f"Введите дату и время мероприятия в формате {GetTimeDateFormatDescription()} (Пример: {GetTimeDateFormatExample()})", reply_markup=ReplyKeyboardRemove())
+    await message.answer(f"Введите дату и время мероприятия в формате {GetTimeDateFormatDescription()} (Пример: {GetTimeDateFormatExample()})", reply_markup=CancelKeyboard.Create())
 
 
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.EnteringDate)
@@ -58,7 +68,7 @@ async def AdminEnterDate(message: Message, storage: BaseStorage, state: FSMConte
         await state.set_state(AdminEventCreatingStates.EnteringPlace)
         await message.answer(f"Введите место проведения мероприятия:", reply_markup=ReplyKeyboardRemove())
     else:
-        await message.answer(f"Неправильный формат даты и времени. Пожалуйста, введите дату и время в формате {GetTimeDateFormatDescription()} (Пример: {GetTimeDateFormatExample()})", reply_markup=ReplyKeyboardRemove())
+        await message.answer(f"Неправильный формат даты и времени. Пожалуйста, введите дату и время в формате {GetTimeDateFormatDescription()} (Пример: {GetTimeDateFormatExample()})", reply_markup=CancelKeyboard.Create())
     
 
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.EnteringPlace)
@@ -68,7 +78,7 @@ async def AdminEnterPlace(message: Message, storage: BaseStorage, state: FSMCont
     
     await state.update_data(data)
     await state.set_state(AdminEventCreatingStates.EnteringPhotoCount)
-    await message.answer(f"Введите количество фотографий", reply_markup=ReplyKeyboardRemove())
+    await message.answer(f"Введите количество фотографий", reply_markup=CancelKeyboard.Create())
 
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.EnteringPhotoCount)
 async def AdminEnterPhotoCount(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
@@ -76,7 +86,7 @@ async def AdminEnterPhotoCount(message: Message, storage: BaseStorage, state: FS
     try:
         data["photo-count"] = int(message.text)
     except ValueError as e:
-        await message.answer(f"Не число. Пожалуйста, введите число.", reply_markup=ReplyKeyboardRemove())
+        await message.answer(f"Не число. Пожалуйста, введите число.", reply_markup=CancelKeyboard.Create())
         raise e
     if int(message.text) < 0:
         await message.answer(f"Количество фотографий не может быть отрицательным. Пожалуйста, введите положительное число.", reply_markup=ReplyKeyboardRemove())
@@ -84,7 +94,7 @@ async def AdminEnterPhotoCount(message: Message, storage: BaseStorage, state: FS
     
     await state.update_data(data)
     await state.set_state(AdminEventCreatingStates.EnteringVideoCount)
-    await message.answer(f"Введите количество видео:", reply_markup=ReplyKeyboardRemove())  
+    await message.answer(f"Введите количество видео:", reply_markup=CancelKeyboard.Create())  
 
 
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.EnteringVideoCount)
