@@ -196,7 +196,7 @@ class PgRedisStorage(BaseStorage):
                                        Name=row[4], Valid=row[5], Agreed=row[6]))
         return acts
 
-    def GetValidTgUserActivistByUsername(self, username : str) -> Activist:
+    def GetValidTgUserActivistByUsername(self, username : str) -> TgUserActivist:
         # Возвращается только 1 потому что при добавлении активиста через бота идет проверка,
         # что Username (или никнейм) уникальный (Как и должно быть в бд)
         cur = self.conn.cursor()
@@ -350,7 +350,7 @@ class PgRedisStorage(BaseStorage):
             return Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
         return None
 
-    def PutActivist(self, tg_user_id : UUID, acname : str) -> Activist:
+    def PutActivist(self, tg_user_id : UUID, acname : str):
         cur = self.conn.cursor()
         cur.execute("""
             insert into activist (id, tg_user_id, acname, valid)
@@ -360,21 +360,20 @@ class PgRedisStorage(BaseStorage):
         self.conn.commit()
         cur.close()
 
-    # def MakeInvalidActivist(self, id_activist : UUID):
-    #     cur = self.conn.cursor()
-    #     cur.execute(f"""
-    #         update activist
-    #         set valid = FALSE
-    #         where id = '{id_activist}'
-    #     """)
-    #     self.conn.commit()
-    #     cur.close()
-
-    def UpdateValidActivist(self, id_act : UUID, new_valid : bool):
+    def UpdateValidActivist(self, id_act : UUID, funcUpdate):
         cur = self.conn.cursor()
         cur.execute(f"""
+            select ac.id, tu.chat_id, ac.acname, ac.valid
+            from tg_user tu join activist ac 
+            on tu.id = ac.tg_user_id
+            where ac.id = '{id_act.hex}'
+        """)
+        row = cur.fetchone()
+        act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
+        newAct = funcUpdate(act)
+        cur.execute(f"""
             update activist
-            set valid = {new_valid}
+            set acname = '{newAct.Name}', valid = {newAct.Valid}
             where id = '{id_act}'
         """)
         self.conn.commit()

@@ -66,7 +66,13 @@ async def AdminChooseDelMember(message : Message, storage : BaseStorage, state :
 )
 async def AdminCancelAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     data = await state.get_data()
-    storage.UpdateValidActivist(UUID(data["id_ActToDel"]), False)
+
+    def funcUpdate(act : Activist):
+        newAct = act.model_copy()
+        newAct.Valid = False
+        return newAct
+
+    storage.UpdateValidActivist(UUID(data["id_ActToDel"]), funcUpdate)
     await message.answer(f"Пользователь {data["name_ActToDel"]} ({data["username_ActToDel"]}) был удален")
 
     act = storage.GetActivistByChatID(message.chat.id)
