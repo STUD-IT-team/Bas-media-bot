@@ -43,7 +43,7 @@ class AuthMiddleware(BaseMiddleware):
             await message.answer(f"Не удалось проверить вашу авторизацию, повторите позднее")
             raise
 
-        if activist is None or not activist.Valid:
+        if (activist is None or not activist.Valid) and (admin is None or not admin.Valid):
             await TransitToUnauthorized(message=message, state=state)
             raise UnauthorizedError()
 
@@ -55,7 +55,7 @@ class AuthMiddleware(BaseMiddleware):
 
         elif admin is not None and (userType is None or userType != "admin"):
             await message.answer("Ваш статус поменялся")
-            await TransitToAdminDefault(message=message, state=state, activist=activist)
+            await TransitToAdminDefault(message=message, state=state, admin=admin)
             logger.info(f"{message.chat.id}:{message.chat.username} changed status to admin")
             return
 

@@ -12,7 +12,7 @@ class AdminDefaultKeyboard:
     BroadcastButtonText = "Массовая рассылка"
 
     @staticmethod
-    def Сreate():
+    def Create():
         return ReplyKeyboardMarkup(
             keyboard=[
                 [KeyboardButton(text=__class__.AddEventButtonText)],

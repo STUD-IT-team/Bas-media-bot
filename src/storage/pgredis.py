@@ -61,6 +61,7 @@ class PgRedisStorage(BaseStorage):
         if row:
             agreement = TelegramUserAgreement(ChatID=row[0], Username=row[1], Agreed=row[2])
             try:
+                self.redis.delete(str(chatID))
                 self.redis.set(name=str(chatID), value=agreement.model_dump_json())
             finally:
                 return agreement
@@ -77,6 +78,7 @@ class PgRedisStorage(BaseStorage):
         cur.close()
 
         try:
+            self.redis.delete(str(chatID))
             self.redis.set(name=str(chatID), value=agreement.model_dump_json())
         finally:
             return
@@ -124,7 +126,7 @@ class PgRedisStorage(BaseStorage):
         cur = self.conn.cursor()
 
         cur.execute("""
-            SELECT tg_admin.id, chat_id FROM tg_admin JOIN tg_user ON tg_user.id = tg_admin.tg_user_id WHERE chat_id = %s;
+            SELECT tg_admin.id, tg_user.chat_id, tg_user.tg_username, tg_admin.adname, tg_admin.valid FROM tg_admin JOIN tg_user ON tg_user.id = tg_admin.tg_user_id WHERE chat_id = %s;
         """, (chatID,))
 
         row = cur.fetchone()
@@ -132,34 +134,38 @@ class PgRedisStorage(BaseStorage):
         
         adm = None
         if row:
-            adm = Admin(ID=row[0], ChatID=row[1])
+            adm = Admin(ID=row[0], ChatID=row[1], UserName=row[2], Name=row[3], Valid=row[4])
         return adm
     
     def PutEvent(self, event: Event):
         cur = self.conn.cursor()
-
-        cur.execute("""
-            INSERT INTO event (id, evname, evdate, place, photo_amount, video_amount, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
-        """, (event.ID.hex, event.Name, event.Date, event.Place, event.PhotoCount, event.VideoCount, event.CreatedBy.hex, event.CreatedAt))
-
-        if event.IsCancelled and isinstance(event, CancelledEvent):
+        try:
             cur.execute("""
-                INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
-            """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
-        elif event.IsCompleted and isinstance(event, CompletedEvent):
-            cur.execute("""
-                INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
-            """, (event.ID.hex, event.CompletedBy.hex, event.CompletedAt))
+                INSERT INTO event (id, evname, evdate, place, photo_amount, video_amount, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
+            """, (event.ID.hex, event.Name, event.Date, event.Place, event.PhotoCount, event.VideoCount, event.CreatedBy.hex, event.CreatedAt))
 
-        # Inserting activists
-        cur.execute("""
-            INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, true)
-        """, (event.ID.hex, event.Chief.Activist.ID.hex))
-        for act in event.Activists:
+            if event.IsCancelled and isinstance(event, CancelledEvent):
+                cur.execute("""
+                    INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
+                """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
+            elif event.IsCompleted and isinstance(event, CompletedEvent):
+                cur.execute("""
+                    INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
+                """, (event.ID.hex, event.CompletedBy.hex, event.CompletedAt))
+
+            # Inserting activists
             cur.execute("""
-                INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, false)
-            """, (event.ID.hex, act.Activist.ID.hex))
-        self.conn.commit()
+                INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, true)
+            """, (event.ID.hex, event.Chief.Activist.ID.hex))
+            for act in event.Activists:
+                cur.execute("""
+                    INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, false)
+                """, (event.ID.hex, act.Activist.ID.hex))
+            
+            self.conn.commit()
+        except psycopg2.Error:
+            self.conn.rollback()
+            raise
         cur.close()
 
     def GetValidActivists(self) -> list[Activist]:
