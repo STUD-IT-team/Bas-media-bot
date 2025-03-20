@@ -18,8 +18,8 @@ class TgUser(BaseModel):
     Agreed : bool
 
 class TgUserActivist(BaseModel):
-    IdTgUser : UUID
-    IdActivist : UUID
+    IDTgUser : UUID
+    IDActivist : UUID
     ChatID : int
     Username : str
     Name : str

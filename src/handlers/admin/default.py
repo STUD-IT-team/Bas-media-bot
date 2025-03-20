@@ -51,7 +51,7 @@ async def AdminDelMember(message : Message, storage : BaseStorage, state : FSMCo
 
 @AdminDefaultRouter.message(
     AdminStates.Default,
-
+)
 async def AdminUnknown(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await message.answer("Не понял введённую команду")
     activist = storage.GetActivistByChatID(message.chat.id)

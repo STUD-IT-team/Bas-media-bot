@@ -179,7 +179,7 @@ class PgRedisStorage(BaseStorage):
             acts.append(Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3]))
         return acts
 
-    def GetValidTgUserActivist(self) -> list[TgUserActivist]:
+    def GetValidTgUserActivists(self) -> list[TgUserActivist]:
         cur = self.conn.cursor()
         cur.execute("""
             select tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
@@ -191,15 +191,37 @@ class PgRedisStorage(BaseStorage):
         cur.close()
         acts = []
         for row in rows:
-            acts.append(TgUserActivist(IdTgUser=row[0], IdActivist=row[1], 
+            acts.append(TgUserActivist(IDTgUser=row[0], IDActivist=row[1], 
                                        ChatID=row[2], Username=row[3],
                                        Name=row[4], Valid=row[5], Agreed=row[6]))
         return acts
 
+    def GetValidTgUserActivistByUsername(self, username : str) -> Activist:
+        # Возвращается только 1 потому что при добавлении активиста через бота идет проверка,
+        # что Username (или никнейм) уникальный (Как и должно быть в бд)
+        cur = self.conn.cursor()
+        cur.execute(f"""
+            select tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
+            from tg_user tu join activist ac 
+            on tu.id = ac.tg_user_id
+            where tu.tg_username = '{username}' and ac.valid = true
+        """)
+        row = cur.fetchone()
+        cur.close()
+        act = None
+        if row:
+            act = TgUserActivist(IDTgUser=row[0], IDActivist=row[1], 
+                                       ChatID=row[2], Username=row[3],
+                                       Name=row[4], Valid=row[5], Agreed=row[6])
+        return act
+
     def GetActivistByName(self, name : str) -> Activist:
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE acname = %s AND valid = true;
+            SELECT activist.id, chat_id, acname, valid 
+            FROM activist JOIN tg_user 
+            ON tg_user.id = activist.tg_user_id 
+            WHERE acname = %s AND valid = true;
         """, (name,))
         row = cur.fetchone()
         cur.close()
@@ -338,12 +360,22 @@ class PgRedisStorage(BaseStorage):
         self.conn.commit()
         cur.close()
 
-    def MakeInvalidActivist(self, id_activist : UUID):
+    # def MakeInvalidActivist(self, id_activist : UUID):
+    #     cur = self.conn.cursor()
+    #     cur.execute(f"""
+    #         update activist
+    #         set valid = FALSE
+    #         where id = '{id_activist}'
+    #     """)
+    #     self.conn.commit()
+    #     cur.close()
+
+    def UpdateValidActivist(self, id_act : UUID, new_valid : bool):
         cur = self.conn.cursor()
         cur.execute(f"""
             update activist
-            set valid = FALSE
-            where id = '{id_activist}'
+            set valid = {new_valid}
+            where id = '{id_act}'
         """)
         self.conn.commit()
         cur.close()

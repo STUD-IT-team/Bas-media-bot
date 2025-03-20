@@ -10,13 +10,14 @@ from keyboards.activist.choosing import MemberChoosingKeyboard
 from keyboards.default.admin import YesNoKeyboard
 import re
 from uuid import UUID
+from models.activist import Activist
 
 AdminDelMemberRouter = Router()
 
 async def TransitToAdminDelMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await state.set_state(AdminMemberDeletingStates.ChoosingMember)
-    validTgUserActivists = storage.GetValidTgUserActivist()
-    tmptext = "Выберити пользователя, которого собираетесь удалить"
+    validTgUserActivists = storage.GetValidTgUserActivists()
+    tmptext = "Выберите пользователя, которого собираетесь удалить"
     await message.answer(tmptext, reply_markup=MemberChoosingKeyboard(validTgUserActivists).Create())
 
 @AdminDelMemberRouter.message(
@@ -29,29 +30,35 @@ async def AdminCancelDelMember(message : Message, storage : BaseStorage, state :
 
 @AdminDelMemberRouter.message(AdminMemberDeletingStates.ChoosingMember)
 async def AdminChooseDelMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
-    await state.set_state(AdminMemberDeletingStates.ConfirmingDelMember)
     msg_username = re.search(r'@(\w+)', message.text)
-    if not msg_username is None:
-        validTgUserActivists = storage.GetValidTgUserActivist()
-        for act in validTgUserActivists:
-            if msg_username.group(1) == act.Username:
-                if act.ChatID == message.chat.id:
-                    await message.answer(f"Вы не можете удалить сами себя")
-                    act = storage.GetActivistByChatID(message.chat.id)
-                    await TransitToAdminDefault(message=message, state=state, activist=act)
-                    return
-                data = await state.get_data()
-                data["id_ActToDel"] = str(act.IdActivist)
-                data["name_ActToDel"] = act.Name
-                data["username_ActToDel"] = act.Username
-                await state.update_data(data)
-                await message.answer(f"Выуверены что хотите удалить пользователя {act.Name} ( {act.Username} )?", 
-                            reply_markup=YesNoKeyboard.Create())
-                return 
-    await message.answer(f"Пользователя с именем {message.text} нет в списках")
-    act = storage.GetActivistByChatID(message.chat.id)
-    await TransitToAdminDefault(message=message, state=state, activist=act)
+    if msg_username is None:
+        await message.answer(f"Пользователя с именем {message.text} нет в списках")
+        await TransitToAdminDefault(message=message, state=state, 
+                                    activist=storage.GetActivistByChatID(message.chat.id))
+        return
+    
+    act = storage.GetValidTgUserActivistByUsername(msg_username.group(1))
+    if act is None:
+        await message.answer(f"Пользователя с именем {message.text} нет в списках")
+        await TransitToAdminDefault(message=message, state=state, 
+                                    activist=storage.GetActivistByChatID(message.chat.id))
+        return
 
+    if act.ChatID == message.chat.id:
+        await message.answer(f"Вы не можете удалить сами себя")
+        await TransitToAdminDefault(message=message, state=state, 
+                                    activist=storage.GetActivistByChatID(message.chat.id))
+        return
+
+    await state.set_state(AdminMemberDeletingStates.ConfirmingDelMember)
+    data = await state.get_data()
+    data["id_ActToDel"] = str(act.IDActivist)
+    data["name_ActToDel"] = act.Name
+    data["username_ActToDel"] = act.Username
+    await state.update_data(data)
+    await message.answer(f"Выуверены что хотите удалить пользователя {act.Name} ( @{act.Username} )?", 
+                reply_markup=YesNoKeyboard.Create())
+    return 
 
 @AdminDelMemberRouter.message(
     AdminMemberDeletingStates.ConfirmingDelMember,
@@ -59,7 +66,7 @@ async def AdminChooseDelMember(message : Message, storage : BaseStorage, state :
 )
 async def AdminCancelAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     data = await state.get_data()
-    storage.MakeInvalidActivist(UUID(data["id_ActToDel"]))
+    storage.UpdateValidActivist(UUID(data["id_ActToDel"]), False)
     await message.answer(f"Пользователь {data["name_ActToDel"]} ({data["username_ActToDel"]}) был удален")
 
     act = storage.GetActivistByChatID(message.chat.id)
