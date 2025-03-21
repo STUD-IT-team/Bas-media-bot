@@ -4,6 +4,7 @@ from keyboards.default.admin import AdminDefaultKeyboard
 from handlers.admin.event_creation import TransitToAdminCreatingEvent
 from handlers.admin.event_print import AdminPrintEvents
 from handlers.admin.add_activist import TransitToAdminNewMember
+from handlers.admin.del_activist import TransitToAdminDelMember
 
 from aiogram import F
 from aiogram import Router
@@ -40,6 +41,13 @@ async def AdminInfoEvent(message : Message, storage : BaseStorage, state : FSMCo
 )
 async def AdminAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await TransitToAdminNewMember(message, storage, state, logger)
+
+@AdminDefaultRouter.message(
+    AdminStates.Default,
+    F.text == AdminDefaultKeyboard.DeleteMemberButtonText,
+)
+async def AdminDelMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
+    await TransitToAdminDelMember(message, storage, state, logger)
 
 @AdminDefaultRouter.message(
     AdminStates.Default,

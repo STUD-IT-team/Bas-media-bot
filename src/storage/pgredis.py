@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from pydantic_core import from_json
 from storage.storage import BaseStorage
-from models.activist import Activist, Admin, TgUser
+from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief
 from models.telegram import TelegramUserAgreement
 from uuid import UUID
@@ -82,7 +82,6 @@ class PgRedisStorage(BaseStorage):
             self.redis.set(name=str(chatID), value=agreement.model_dump_json())
         finally:
             return
-
 
     def PutTgUser(self, chat_id : int, username : str):
         cur = self.conn.cursor()
@@ -172,7 +171,10 @@ class PgRedisStorage(BaseStorage):
         cur = self.conn.cursor()
 
         cur.execute("""
-            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE valid = true;
+            SELECT activist.id, chat_id, acname, valid 
+            FROM activist JOIN tg_user 
+            ON tg_user.id = activist.tg_user_id 
+            WHERE valid = true;
         """)
 
         rows = cur.fetchall()
@@ -183,10 +185,52 @@ class PgRedisStorage(BaseStorage):
             acts.append(Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3]))
         return acts
 
+    def GetValidTgUserActivists(self) -> list[TgUserActivist]:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
+            FROM tg_user tu
+            JOIN activist ac
+            ON tu.id = ac.tg_user_id
+            WHERE ac.valid = true;
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        acts = []
+        for row in rows:
+            acts.append(TgUserActivist(IDTgUser=row[0], IDActivist=row[1], 
+                                       ChatID=row[2], Username=row[3],
+                                       Name=row[4], Valid=row[5], Agreed=row[6]))
+        return acts
+
+    def GetValidTgUserActivistByUsername(self, username : str) -> TgUserActivist:
+        # Возвращается только 1 потому что при добавлении активиста через бота идет проверка,
+        # что Username (или никнейм) уникальный (Как и должно быть в бд)
+        cur = self.conn.cursor()
+        cur.execute(f"""
+            SELECT tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
+            FROM tg_user tu
+            JOIN activist ac
+            ON tu.id = ac.tg_user_id
+            WHERE tu.tg_username = '{username}'
+            AND ac.valid = true
+        """)
+        row = cur.fetchone()
+        cur.close()
+        act = None
+        if row:
+            act = TgUserActivist(IDTgUser=row[0], IDActivist=row[1], 
+                                       ChatID=row[2], Username=row[3],
+                                       Name=row[4], Valid=row[5], Agreed=row[6])
+        return act
+
     def GetActivistByName(self, name : str) -> Activist:
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE acname = %s AND valid = true;
+            SELECT activist.id, chat_id, acname, valid 
+            FROM activist JOIN tg_user 
+            ON tg_user.id = activist.tg_user_id 
+            WHERE acname = %s AND valid = true;
         """, (name,))
         row = cur.fetchone()
         cur.close()
@@ -196,7 +240,6 @@ class PgRedisStorage(BaseStorage):
             return act
         return None
 
-    
     def GetActiveEvents(self) -> list[Event]:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
 
@@ -236,6 +279,7 @@ class PgRedisStorage(BaseStorage):
             )
             events.append(event)
         return events
+    
     def getEventChief(self, eventID) -> EventChief:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
 
@@ -290,7 +334,9 @@ class PgRedisStorage(BaseStorage):
     def GetTgUserByUName(self, username : str):
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT id, chat_id, tg_username, agreed FROM tg_user WHERE tg_username = %s;
+            SELECT id, chat_id, tg_username, agreed 
+            FROM tg_user 
+            WHERE tg_username = %s;
         """, (username,))
         row = cur.fetchone()
         cur.close()
@@ -302,10 +348,11 @@ class PgRedisStorage(BaseStorage):
     def GetActivistByTgUserID(self, tg_user_id : UUID):
         cur = self.conn.cursor()
         cur.execute("""
-            select activist.id, chat_id, acname, valid
-            from activist join tg_user
-            on tg_user.id = activist.tg_user_id
-            where tg_user_id = %s
+            SELECT activist.id, chat_id, acname, valid
+            FROM activist
+            JOIN tg_user
+            ON tg_user.id = activist.tg_user_id
+            WHERE tg_user_id =  %s
         """, (tg_user_id.hex, ))
         row = cur.fetchone()
         cur.close()
@@ -313,14 +360,33 @@ class PgRedisStorage(BaseStorage):
             return Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
         return None
 
-    def PutActivist(self, tg_user_id : UUID, acname : str) -> Activist:
+    def PutActivist(self, tg_user_id : UUID, acname : str):
         cur = self.conn.cursor()
         cur.execute("""
-            insert into activist (id, tg_user_id, acname, valid)
+            INSERT INTO activist (id, tg_user_id, acname, valid) 
             values (gen_random_uuid(), %s, %s, True)
         """, (tg_user_id.hex, acname))
 
         self.conn.commit()
         cur.close()
 
-
+    def UpdateValidActivist(self, id_act : UUID, funcUpdate):
+        cur = self.conn.cursor()
+        cur.execute(f"""
+            SELECT ac.id, tu.chat_id, ac.acname, ac.valid
+            FROM tg_user tu
+            JOIN activist ac
+            ON tu.id = ac.tg_user_id
+            WHERE ac.id = '{id_act.hex}'
+        """)
+        row = cur.fetchone()
+        act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
+        newAct = funcUpdate(act)
+        cur.execute(f"""
+            update activist
+            set acname = '{newAct.Name}', valid = {newAct.Valid}
+            where id = '{id_act}'
+        """)
+        self.conn.commit()
+        cur.close()
+        
