@@ -54,6 +54,6 @@ async def AdminDelMember(message : Message, storage : BaseStorage, state : FSMCo
 )
 async def AdminUnknown(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await message.answer("Не понял введённую команду")
-    activist = storage.GetActivistByChatID(message.chat.id)
-    if activist is not None:
-        await message.answer(f"Админ, {activist.Name}! Что хотите сделать?", reply_markup=AdminDefaultKeyboard.Сreate())
+    admin = storage.GetAdminByChatID(message.chat.id)
+    if admin is not None:
+        await message.answer(f"Админ, {admin.Name}! Что хотите сделать?", reply_markup=AdminDefaultKeyboard.Create())
