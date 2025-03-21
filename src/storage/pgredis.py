@@ -188,10 +188,11 @@ class PgRedisStorage(BaseStorage):
     def GetValidTgUserActivists(self) -> list[TgUserActivist]:
         cur = self.conn.cursor()
         cur.execute("""
-            select tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
-            from tg_user tu join activist ac 
-            on tu.id = ac.tg_user_id
-            where ac.valid = true;
+            SELECT tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
+            FROM tg_user tu
+            JOIN activist ac
+            ON tu.id = ac.tg_user_id
+            WHERE ac.valid = true;
         """)
         rows = cur.fetchall()
         cur.close()
@@ -207,10 +208,12 @@ class PgRedisStorage(BaseStorage):
         # что Username (или никнейм) уникальный (Как и должно быть в бд)
         cur = self.conn.cursor()
         cur.execute(f"""
-            select tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
-            from tg_user tu join activist ac 
-            on tu.id = ac.tg_user_id
-            where tu.tg_username = '{username}' and ac.valid = true
+            SELECT tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
+            FROM tg_user tu
+            JOIN activist ac
+            ON tu.id = ac.tg_user_id
+            WHERE tu.tg_username = '{username}'
+            AND ac.valid = true
         """)
         row = cur.fetchone()
         cur.close()
@@ -345,10 +348,11 @@ class PgRedisStorage(BaseStorage):
     def GetActivistByTgUserID(self, tg_user_id : UUID):
         cur = self.conn.cursor()
         cur.execute("""
-            select activist.id, chat_id, acname, valid
-            from activist join tg_user
-            on tg_user.id = activist.tg_user_id
-            where tg_user_id = %s
+            SELECT activist.id, chat_id, acname, valid
+            FROM activist
+            JOIN tg_user
+            ON tg_user.id = activist.tg_user_id
+            WHERE tg_user_id =  %s
         """, (tg_user_id.hex, ))
         row = cur.fetchone()
         cur.close()
@@ -359,7 +363,7 @@ class PgRedisStorage(BaseStorage):
     def PutActivist(self, tg_user_id : UUID, acname : str):
         cur = self.conn.cursor()
         cur.execute("""
-            insert into activist (id, tg_user_id, acname, valid)
+            INSERT INTO activist (id, tg_user_id, acname, valid) 
             values (gen_random_uuid(), %s, %s, True)
         """, (tg_user_id.hex, acname))
 
@@ -369,10 +373,11 @@ class PgRedisStorage(BaseStorage):
     def UpdateValidActivist(self, id_act : UUID, funcUpdate):
         cur = self.conn.cursor()
         cur.execute(f"""
-            select ac.id, tu.chat_id, ac.acname, ac.valid
-            from tg_user tu join activist ac 
-            on tu.id = ac.tg_user_id
-            where ac.id = '{id_act.hex}'
+            SELECT ac.id, tu.chat_id, ac.acname, ac.valid
+            FROM tg_user tu
+            JOIN activist ac
+            ON tu.id = ac.tg_user_id
+            WHERE ac.id = '{id_act.hex}'
         """)
         row = cur.fetchone()
         act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
