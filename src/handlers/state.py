@@ -32,6 +32,7 @@ class AdminNewMemberStates(StatesGroup):
 
 class AdminMemberDeletingStates(StatesGroup):
     ChoosingMember = State()
+    ConfirmingDelMember = State()
 
 class AdminMailingStates(StatesGroup):
     EnteringText = State()
