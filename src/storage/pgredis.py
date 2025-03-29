@@ -390,3 +390,36 @@ class PgRedisStorage(BaseStorage):
         self.conn.commit()
         cur.close()
         
+    def GetEventsByActivist(self, ActivistID) -> list[EventForActivists]:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+
+        cur.execute("""
+            SELECT event_id FROM event_member WHERE activist_id = %s
+        """, (ActivistID.hex,))
+
+        event_ids = cur.fetchall()
+
+        events = []
+        for event_id in event_ids:
+            row = []
+            cur.execute("""
+                SELECT evname, evdate, photo_amount, video_amout FROM event WHERE id = %s
+            """, (event_id.hex,))
+            row = cur.fetchone()
+            cur.execute("""
+                SELECT activist_id FROM event_member WHERE event_id = %s and is_chief = True
+            """, (event_id.hex,))
+            chief_id = cur.fetchone()
+            cur.execute("""
+                SELECT tg_user_id, acname FROM activist WHERE id = %s
+            """, (chief_id.hex,))
+            row.append(cur.fetchone())
+            events.append(EventForActivists(ID = event_id,
+                                            Name = row[0],  
+                                            Date = row[1], 
+                                            ChiefName = row[5],
+                                            ChiefTgNick = row[4],
+                                            PhotoCount = row[2],
+                                            VideoCount = row[3]))
+        cur.close 
+        return events

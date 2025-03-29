@@ -37,3 +37,11 @@ class CompletedEvent(Event):
     CompletedAt : datetime
     CompletedBy : UUID
 
+class EventForActivists():
+    ID: UUID
+    Name: str
+    Date : datetime
+    ChiefName: str
+    ChiefTgNick: str
+    PhotoCount : int
+    VideoCount : int
