@@ -21,6 +21,9 @@ class BaseStorage:
     def PutEvent(self, event: event.Event):
         raise NotImplementedError
     
+    def CancelEvent(self, event_id: UUID, canceled_by: UUID):
+        raise NotImplementedError    
+    
     def GetValidActivists(self) -> list[activist.Activist]:
         raise NotImplementedError
     
@@ -28,9 +31,6 @@ class BaseStorage:
         raise NotImplementedError
     
     def GetActiveEvents(self) -> list[event.Event] :
-        raise NotImplementedError
-    
-    def PutActivist(self, tg_user_id : int, acname : str):
         raise NotImplementedError
         
 
