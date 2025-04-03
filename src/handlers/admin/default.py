@@ -18,6 +18,10 @@ from logging import Logger
 AdminDefaultRouter = Router()
 
 
+# TODO: migrate to this usage?? Вкусновщина, признаю
+# AdminDefaultRouter.message.register()
+
+
 @AdminDefaultRouter.message(
     AdminStates.Default,
     F.text == AdminDefaultKeyboard.AddEventButtonText,
