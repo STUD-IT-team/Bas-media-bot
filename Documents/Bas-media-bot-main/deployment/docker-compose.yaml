@@ -27,7 +27,7 @@ services:
         volumes:
             - ../data/db-data:/var/lib/postgresql/data
         ports:
-            - "5433:5432"
+            - "5434:5432"
         restart: always
         deploy:
             resources:
@@ -53,7 +53,7 @@ services:
     redis-bas:
         container_name: redis-bas
         hostname: redis-bas
-        restart: unless-stopped
+        restart: unless-stopped   
         build:
             context: ./redis
             dockerfile: ./Dockerfile
