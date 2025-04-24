@@ -37,3 +37,11 @@ class CompletedEvent(Event):
     CompletedAt : datetime
     CompletedBy : UUID
 
+class EventForActivist(BaseModel):
+    ID: UUID
+    Name: str
+    Date : datetime
+    Chief: Activist
+    ChiefTgNick: str
+    PhotoCount : int
+    VideoCount : int

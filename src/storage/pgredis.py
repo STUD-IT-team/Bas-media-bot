@@ -2,12 +2,12 @@ from pydantic import BaseModel
 from pydantic_core import from_json
 from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
-from models.event import Event, EventActivist, EventChief
+from models.event import Event, EventActivist, EventChief, EventForActivist
 from models.telegram import TelegramUserAgreement
 from uuid import UUID
 from psycopg2.extras import RealDictCursor
 import psycopg2
-
+from datetime import datetime
 import redis
 
 class PostgresCredentials(BaseModel):
@@ -389,4 +389,53 @@ class PgRedisStorage(BaseStorage):
         """)
         self.conn.commit()
         cur.close()
+    
+    def GetEventsByActivistID(self, ActivistID: UUID) -> list[EventForActivist]:
+                
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
         
+        cur.execute("""
+            SELECT event_id FROM event_member WHERE activist_id = %s
+        """, (ActivistID.hex,))
+        event_ids = cur.fetchall()
+        
+        events = []
+        if event_ids:
+            for event_id in event_ids:
+                row = []
+
+                #Достаём инфу о меро
+                event_id_UUID = UUID(hex=event_id['event_id'])
+                cur.execute("""
+                    SELECT evname, evdate, photo_amount, video_amount FROM event WHERE id = %s
+                """, (event_id_UUID.hex,))
+                row = cur.fetchone()
+
+                #Достаём ник в тг
+                chief = self.getEventChief(event_id_UUID)
+                cur.execute("""
+                    SELECT tg_user_id FROM activist WHERE id = %s
+                """, (chief.Activist.ID.hex,))
+                chief_tg_id = cur.fetchone()
+                chief_tg_id_UUID = UUID(hex=chief_tg_id['tg_user_id'])
+                cur.execute("""
+                    SELECT tg_username FROM tg_user WHERE id = %s
+                """, (chief_tg_id_UUID.hex,)) 
+                TgNick = cur.fetchone()
+                
+                event = EventForActivist( 
+                    ID = event_id_UUID,
+                    Name = row['evname'],  
+                    Date = row['evdate'], 
+                    Chief = chief.Activist, 
+                    ChiefTgNick = TgNick['tg_username'],
+                    PhotoCount = row['photo_amount'],
+                    VideoCount = row['video_amount']
+                )
+                events.append(event)
+
+        cur.close()
+        return events
+
+        
+    
