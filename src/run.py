@@ -32,6 +32,10 @@ from middleware.log import LogMiddleware
 from middleware.auth import AuthMiddleware
 from middleware.agreement import AgreementMiddleware
 
+# NotificationScheduler
+from notifications.NotificationScheduler import NotificationScheduler
+from middleware.notifications import NotifSchedulerMiddleware
+
 # Logging config options
 LOGGING_KWARGS = {
     "format": "[%(levelname)s, %(asctime)s, %(filename)s] func %(funcName)s, line %(lineno)d: %(message)s;",
@@ -42,7 +46,18 @@ LOGGING_KWARGS = {
 
 
 async def main() -> None:
-    await dp.start_polling(bot)
+    # Один event loop
+    scheduler_task = asyncio.create_task(notifScheduler.start())    # Запуск планировщика в фоне
+    try:
+        await dp.start_polling(bot) # запуск бота в основном потоке
+    finally:
+        # Корректное завершение
+        scheduler_task.cancel()
+        try:
+            await scheduler_task
+        except asyncio.CancelledError:
+            pass
+        await bot.session.close()
 
 
 if __name__ == "__main__":
@@ -67,11 +82,14 @@ if __name__ == "__main__":
 
     logger = logging.getLogger("bas-bot-logger")
     logging.basicConfig(**LOGGING_KWARGS)
+    logging.getLogger('apscheduler').setLevel(logging.WARNING)  # Отключаем INFO-логирование от APScheduler
+
+    notifScheduler = NotificationScheduler(bot)
 
     dp.update.outer_middleware(LogMiddleware(logger))
     dp.update.outer_middleware(StorageMiddleware(PgRedisStorage, pgcred, redcred))
+    dp.update.outer_middleware(NotifSchedulerMiddleware(notifScheduler))
     dp.update.outer_middleware(AgreementMiddleware())
     dp.update.outer_middleware(AuthMiddleware())
-
 
     asyncio.run(main())
