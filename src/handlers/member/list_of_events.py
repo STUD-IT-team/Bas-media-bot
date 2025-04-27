@@ -5,6 +5,7 @@ from storage.storage import BaseStorage
 from utils.strings import NewlineJoin
 from aiogram.fsm.context import FSMContext
 from keyboards.default.member import MemberDefaultKeyboard
+from handlers.usertransition import TransitToMemberDefault
 
 MemberGetListOfEventsRouter = Router()
 
@@ -17,7 +18,6 @@ async def getListOfEvents(message: Message, state: FSMContext, storage: BaseStor
 
     except:
         await message.answer("Ошибка при получении списка ваших мероприятий")
-        await state.set_state(MemberStates.Default)
         raise
     if len(events) == 0:
         await message.answer("У Вас нет активных мероприятий")
@@ -31,4 +31,4 @@ async def getListOfEvents(message: Message, state: FSMContext, storage: BaseStor
             f"<b>Количество видео:</b> {event.VideoCount}",
             f"<b>Главорг:</b> {event.Chief.Name}  @{event.ChiefTgNick}"))
 
-    await state.set_state(MemberStates.Default)
+    await TransitToMemberDefault(message=message, state=state, activist=act)
