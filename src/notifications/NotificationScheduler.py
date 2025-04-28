@@ -4,42 +4,47 @@ import asyncio
 from typing import List, Dict, Optional
 import uuid
 from aiogram import Bot
+from uuid import UUID
+
+from models.notification import Notification
+
 
 class NotificationScheduler:
     def __init__(self, bot: Optional[Bot]):
         self.scheduler = AsyncIOScheduler()
         self.bot = bot
-        self.notifications: Dict[str, Dict] = {}  # {id: {"text": str, "time": datetime}}
+        self.notifications: Dict[UUID, Notification] = {}
+        # self.notifications: Dict[str, Dict] = {}  # {id: {"text": str, "time": datetime}}
         
-    async def add_notification(self, chat_id: int, text: str, notify_time: datetime) -> str:
+    async def AddNotification(self, notif: Notification):
         """Добавляет уведомление и планирует его вывод"""
-        notification_id = str(uuid.uuid4())
-        
-        self.notifications[notification_id] = {
-            "chat_id": chat_id,
-            "text": text,
-            "time": notify_time
-        }
+        self.notifications[notif.ID] = notif
+        # notification_id = str(uuid.uuid4())
+        # self.notifications[notification_id] = {
+        #     "chat_id": chat_id,
+        #     "text": text,
+        #     "time": notify_time
+        # }
         
         # Планируем задачу
         self.scheduler.add_job(
-            self._send_notification,
+            self._sendNotification,
             'date',
-            run_date=notify_time,
-            args=(notification_id,),
-            id=notification_id
+            run_date=notif.NotifyTime,
+            args=(notif.ID,),
+            id=notif.ID.hex
         )
         
-        return notification_id
+        # return notification_id
     
-    async def _send_notification(self, notification_id: str):
+    async def _sendNotification(self, notification_id: UUID):
         """Внутренний метод для отправки уведомления"""
         if notification_id in self.notifications:
             notification = self.notifications.pop(notification_id)
             if self.bot:
                 await self.bot.send_message(
-                    chat_id=notification["chat_id"],
-                    text=f"🔔 Уведомление:\n{notification['text']}"
+                    chat_id=notification.ChatID,
+                    text=f"🔔 {notification.Type.value}:\n{notification.Text}"
                 )
 
     # async def _print_notification(self, notification_id: str):
@@ -50,21 +55,10 @@ class NotificationScheduler:
     #         print(notification["text"])
     #         print("-" * 40)
     
-    async def start(self):
+    async def Start(self):
         """Запускает планировщик"""
         self.scheduler.start()
         print("Сервис уведомлений запущен. Ожидание запланированных сообщений...")
-        await self.add_notification(
-            chat_id=937944297,
-            text="Пора пить кофе!",
-            notify_time=datetime.now().replace(second=datetime.now().second + 5)
-        )
-        await self.add_notification(
-            937944297,
-            "Проверить почту",
-            datetime.now().replace(second=datetime.now().second + 10)
-        )
-        
         try:
             while True:
                 await asyncio.sleep(1)
@@ -72,20 +66,20 @@ class NotificationScheduler:
             self.scheduler.shutdown()
             print("Сервис уведомлений остановлен.")
     
-    async def cancel_notification(self, notification_id: str) -> bool:
-        """Отменяет запланированное уведомление"""
-        if notification_id in self.notifications:
-            self.scheduler.remove_job(notification_id)
-            self.notifications.pop(notification_id)
-            return True
-        return False
+    # async def cancel_notification(self, notification_id: str) -> bool:
+    #     """Отменяет запланированное уведомление"""
+    #     if notification_id in self.notifications:
+    #         self.scheduler.remove_job(notification_id)
+    #         self.notifications.pop(notification_id)
+    #         return True
+    #     return False
     
-    def get_pending_notifications(self) -> List[Dict]:
-        """Возвращает список ожидающих уведомлений"""
-        return [
-            {"id": nid, **data} 
-            for nid, data in self.notifications.items()
-        ]
+    # def get_pending_notifications(self) -> List[Dict]:
+    #     """Возвращает список ожидающих уведомлений"""
+    #     return [
+    #         {"id": nid, **data} 
+    #         for nid, data in self.notifications.items()
+    #     ]
 
 # Пример использования
 async def main():

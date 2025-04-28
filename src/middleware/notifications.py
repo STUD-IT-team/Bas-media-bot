@@ -1,13 +1,13 @@
 from aiogram import BaseMiddleware
 from typing import Dict, Any, Callable, Awaitable
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from notifications.NotificationScheduler import NotificationScheduler
+from notifications.NotificationService import NotificationService
 
-class NotifSchedulerMiddleware(BaseMiddleware):
-    def __init__(self, notifScheduler: NotificationScheduler):
-        if (not isinstance(notifScheduler, NotificationScheduler)):
-            raise ValueError("notification Scheduler must be an instance of NotificationScheduler")
-        self.notifScheduler = notifScheduler
+class NotificationsMiddleware(BaseMiddleware):
+    def __init__(self, notifServ: NotificationService):
+        if (not isinstance(notifServ, NotificationService)):
+            raise ValueError("notification Scheduler must be an instance of NotificationService")
+        self.notifServ = notifServ
 
     async def __call__(
         self,
@@ -15,5 +15,5 @@ class NotifSchedulerMiddleware(BaseMiddleware):
         event: Any,
         data: Dict[str, Any]
     ) -> Any:
-        data["notifScheduler"] = self.notifScheduler  # Добавляем планировщик в контекст
+        data["notifServ"] = self.notifServ  # Добавляем планировщик в контекст
         return await handler(event, data)
