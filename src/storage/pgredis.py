@@ -422,7 +422,7 @@ class PgRedisStorage(BaseStorage):
         cur.close()
         return events
 
-    def GetTgUserActivistByActivistID(self, ActivistID: UUID):
+    def GetTgUserActivistByActivistID(self, ActivistID: UUID) -> TgUserActivist:
 
         cur = self.conn.cursor()
 
