@@ -391,51 +391,58 @@ class PgRedisStorage(BaseStorage):
         cur.close()
     
     def GetEventsByActivistID(self, ActivistID: UUID) -> list[EventForActivist]:
-                
-        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        
+        cur = self.conn.cursor()
         
         cur.execute("""
             SELECT event_id FROM event_member WHERE activist_id = %s
         """, (ActivistID.hex,))
         event_ids = cur.fetchall()
-        
+
         events = []
         if event_ids:
             for event_id in event_ids:
-                row = []
-
-                #Достаём инфу о меро
-                event_id_UUID = UUID(hex=event_id['event_id'])
                 cur.execute("""
                     SELECT evname, evdate, photo_amount, video_amount FROM event WHERE id = %s
-                """, (event_id_UUID.hex,))
+                """, (event_id[0],))
                 row = cur.fetchone()
 
-                #Достаём ник в тг
-                chief = self.getEventChief(event_id_UUID)
-                cur.execute("""
-                    SELECT tg_user_id FROM activist WHERE id = %s
-                """, (chief.Activist.ID.hex,))
-                chief_tg_id = cur.fetchone()
-                chief_tg_id_UUID = UUID(hex=chief_tg_id['tg_user_id'])
-                cur.execute("""
-                    SELECT tg_username FROM tg_user WHERE id = %s
-                """, (chief_tg_id_UUID.hex,)) 
-                TgNick = cur.fetchone()
-                
+                chief = self.GetTgUserActivistByActivistID(self.getEventChief(UUID(hex=event_id[0])).Activist.ID)
+
                 event = EventForActivist( 
-                    ID = event_id_UUID,
-                    Name = row['evname'],  
-                    Date = row['evdate'], 
-                    Chief = chief.Activist, 
-                    ChiefTgNick = TgNick['tg_username'],
-                    PhotoCount = row['photo_amount'],
-                    VideoCount = row['video_amount']
+                    ID = UUID(hex=event_id[0]),
+                    Name = row[0],  
+                    Date = row[1], 
+                    Chief = chief, 
+                    PhotoCount = row[2],
+                    VideoCount = row[3]
                 )
                 events.append(event)
 
         cur.close()
         return events
 
-        
+    def GetTgUserActivistByActivistID(self, ActivistID: UUID):
+
+        cur = self.conn.cursor()
+
+        cur.execute("""
+            SELECT tg_user_id, acname, valid FROM activist WHERE id = %s
+        """, (ActivistID.hex,))
+        fromActivist = cur.fetchone()
+        cur.execute("""
+            SELECT chat_id, tg_username, agreed FROM tg_user WHERE id = %s
+        """, (fromActivist[0],))
+        fromTgUser = cur.fetchone()
+
+        TgUserAct = TgUserActivist(
+            IDTgUser = UUID(hex=fromActivist[0]),
+            IDActivist = ActivistID,
+            ChatID = fromTgUser[0],
+            Username = fromTgUser[1],
+            Name = fromActivist[1],
+            Valid = fromActivist[2],
+            Agreed = fromTgUser[2]
+        )
+        return TgUserAct
     

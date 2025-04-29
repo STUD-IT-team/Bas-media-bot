@@ -18,7 +18,6 @@ from handlers.admin.event_creation import AdminEventCreatingRouter
 from handlers.admin.add_activist import AdminNewMemberRouter
 from handlers.admin.del_activist import AdminDelMemberRouter
 from handlers.member.default import MemberDefaultRouter
-from handlers.member.list_of_events import MemberGetListOfEventsRouter
 
 
 # Utils
@@ -63,7 +62,6 @@ if __name__ == "__main__":
     dp.include_router(AdminDelMemberRouter)
     dp.include_router(AdminEventCreatingRouter)
     dp.include_router(AdminDefaultRouter)
-    dp.include_router(MemberGetListOfEventsRouter)
     dp.include_router(MemberDefaultRouter)
     dp.include_router(UnknownRouter)
 
