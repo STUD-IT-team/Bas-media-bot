@@ -100,7 +100,7 @@ CREATE TABLE completed_event (
   CONSTRAINT completed_by_fkey FOREIGN KEY (completed_by) REFERENCES activist (id)
 );
 
-CREATE TYPE NOTIF_TYPE AS ENUM ('EventReminder', 'Info');
+CREATE TYPE NOTIF_TYPE AS ENUM ('EventReminder', 'Info', 'Assignment', 'EventRemove');
 
 CREATE TABLE notifications (
     id UUID PRIMARY KEY,

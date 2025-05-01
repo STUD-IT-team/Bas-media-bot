@@ -5,6 +5,7 @@ from typing import List, Dict, Optional
 import uuid
 from aiogram import Bot
 from uuid import UUID
+from aiolimiter import AsyncLimiter
 
 from models.notification import BaseNotification
 # from models.notification import Notification
@@ -15,12 +16,21 @@ class NotificationScheduler:
         self.scheduler = AsyncIOScheduler()
         self.bot = bot
         self.notifications: Dict[UUID, BaseNotification] = {}
+        self.limiter = AsyncLimiter(30, 60)  # 30 уведомлений в 60 секунд
         # self.notifications: Dict[str, Dict] = {}  # {id: {"text": str, "time": datetime}}
         
     async def AddNotification(self, notif: BaseNotification):
         """Добавляет уведомление и планирует его вывод"""
+        print(f"{notif}")
+
         self.notifications[notif.ID] = notif
-        
+
+        # Если время уведомления уже прошло, отправляем сразу
+        if notif.NotifyTime <= datetime.now():
+            # print('-----here------')
+            await self._sendNotification(notif.ID)
+            return
+
         # Планируем задачу
         self.scheduler.add_job(
             self._sendNotification,
@@ -34,9 +44,9 @@ class NotificationScheduler:
     
     async def _sendNotification(self, notification_id: UUID):
         """Внутренний метод для отправки уведомления"""
-        if notification_id in self.notifications:
-            notification = self.notifications.pop(notification_id)
-            if self.bot:
+        async with self.limiter:
+            if self.bot and notification_id in self.notifications:
+                notification = self.notifications.pop(notification_id)
                 for charID in notification.ChatIDs:
                     await self.bot.send_message(
                         chat_id=charID,

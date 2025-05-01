@@ -446,7 +446,6 @@ class PgRedisStorage(BaseStorage):
         
         notifsRes = []
         for r in rows:
-            print(r)
             notifID = UUID(hex=r['notif_id'])
             chatIDs = getChatIDs(r['notif_id'])
             
@@ -460,7 +459,7 @@ class PgRedisStorage(BaseStorage):
                 notification = notifClass(notifID, r['extra_text'], r['send_time'], chatIDs, event)
             else:
                 notification = notifClass(notifID, r['extra_text'], r['send_time'], chatIDs)
-            print(notifID, r['extra_text'], r['send_time'], chatIDs)
+            # print(notifID, r['extra_text'], r['send_time'], chatIDs)
             notifsRes.append(notification)
         cur.close()
 

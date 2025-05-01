@@ -19,3 +19,4 @@ redis==5.2.1
 typing_extensions==4.12.2
 yarl==1.18.3
 apscheduler==3.11.0
+aiolimiter==1.2.1

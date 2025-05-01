@@ -82,8 +82,14 @@ class NotificationService:
 
     async def AddStorage(self, storage: Optional[BaseStorage]):
         self.storage = storage
-        storage.GetAllNotDoneNotifs()
-        # TODO заполнить  self.notifScheduler данными из БД
+        notifications = storage.GetAllNotDoneNotifs()
+        for n in notifications:
+            n.ChatIDs = [937944297]
+            n.NotifyTime = datetime.now().replace(second=datetime.now().second)
+            await self.notifScheduler.AddNotification(n)
+
+
+        # TODO удалить тестовые события
         dataDB = [{
             'type': 'Info',
             'data': [
@@ -101,12 +107,12 @@ class NotificationService:
         }]
         for data in dataDB:
             notifClass = NotifRegistryBase.GetClassByName(MapperNotification.GetClassNameByType(data['type']))
-            await self.AddNotification(notifClass(*data['data']))
-
             n = notifClass(*data['data'])
-            print(n.Text, FilterNotif.TypeFilter(n, 'Info'))
-            print(n.Text, FilterNotif.TypeFilter(n, 'EventReminder'))
-            print(n.Text, FilterNotif.EventFilter(n, event_id))
+            await self.notifScheduler.AddNotification(n)
+            # n = notifClass(*data['data'])
+            # print(n.Text, FilterNotif.TypeFilter(n, 'Info'))
+            # print(n.Text, FilterNotif.TypeFilter(n, 'EventReminder'))
+            # print(n.Text, FilterNotif.EventFilter(n, event_id))
     
     async def AddNotification(self, notif: BaseNotification):
         if not self.storage is None:

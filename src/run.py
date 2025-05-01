@@ -46,6 +46,7 @@ LOGGING_KWARGS = {
 
 
 async def main() -> None:
+    await notifServ.AddStorage(PgRedisStorage(pgcred, redcred))
     # Один event loop
     scheduler_task = asyncio.create_task(notifServ.StartScheduler())    # Запуск планировщика в фоне
     try:
@@ -85,7 +86,7 @@ if __name__ == "__main__":
     logging.getLogger('apscheduler').setLevel(logging.WARNING)  # Отключаем INFO-логирование от APScheduler
 
     notifServ = NotificationService(bot)
-    asyncio.run(notifServ.AddStorage(PgRedisStorage(pgcred, redcred)))
+    # asyncio.run(notifServ.AddStorage(PgRedisStorage(pgcred, redcred)))
 
     dp.update.outer_middleware(LogMiddleware(logger))
     dp.update.outer_middleware(StorageMiddleware(PgRedisStorage, pgcred, redcred))
