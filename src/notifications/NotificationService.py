@@ -10,25 +10,15 @@ from models.notification import BaseNotification
 from notifications.NotifRegistry import NotifRegistryBase
 from models.event import Event
 
-from pydantic import BaseModel
 from uuid import UUID, uuid4
 from models.event import EventChief, EventActivist
 from models.activist import Activist
 from datetime import timedelta
+from models.notification import MapperNotification
+from notifications.NotifFilter import FilterNotif
 
-class Event(BaseModel):
-    ID: UUID
-    Name: str
-    Date: datetime
-    Place: str
-    PhotoCount: int
-    VideoCount: int
-    Chief: EventChief
-    Activists: List[EventActivist]
-    IsCancelled: bool = False
-    IsCompleted: bool = False
-    CreatedBy: UUID
-    CreatedAt: datetime
+# ID события
+event_id = uuid4()
 
 # Функция для создания тестового события
 def create_test_event():
@@ -53,10 +43,6 @@ def create_test_event():
         Name="Сидорова Мария Васильевна",
         Valid=True
     )
-
-    # ID события
-    event_id = uuid4()
-    
     # Создаем событие
     event = Event(
         ID=event_id,
@@ -97,25 +83,29 @@ class NotificationService:
     async def AddStorage(self, storage: Optional[BaseStorage]):
         self.storage = storage
         # TODO заполнить  self.notifScheduler данными из БД
-        print(NotifRegistryBase.GetClassByName('InfoNotif').__name__)
         dataDB = [{
-            'type': 'InfoNotif',
-            'data': [uuid.uuid4(), "Пора пить кофе!", datetime.now().replace(second=datetime.now().second + 5), 937944297]
-            # 'ID': uuid.uuid4(), 
-            # 'Text': "Пора пить кофе!", 
-            # 'NotifyTime': datetime.now().replace(second=datetime.now().second + 5),
-            # 'ChatID': 937944297
+            'type': 'Info',
+            'data': [
+                uuid.uuid4(), 
+                "Пора пить кофе!", 
+                datetime.now().replace(second=datetime.now().second + 5), 
+                [937944297]]
         }, {
-            'type': 'EventReminderNotif',
+            'type': 'EventReminder',
             'data': [uuid.uuid4(), 
                     "Проверить почту", 
                     datetime.now().replace(second=datetime.now().second + 7), 
-                    937944297,
+                    [937944297],
                     create_test_event()]
         }]
         for data in dataDB:
-            notifClass = NotifRegistryBase.GetClassByName(data['type'])
+            notifClass = NotifRegistryBase.GetClassByName(MapperNotification.GetClassNameByType(data['type']))
             await self.AddNotification(notifClass(*data['data']))
+
+            n = notifClass(*data['data'])
+            print(n.Text, FilterNotif.TypeFilter(n, 'Info'))
+            print(n.Text, FilterNotif.TypeFilter(n, 'EventReminder'))
+            print(n.Text, FilterNotif.EventFilter(n, event_id))
     
     async def AddNotification(self, notif: BaseNotification):
         if not self.storage is None:

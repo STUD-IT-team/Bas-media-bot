@@ -20,12 +20,6 @@ class NotificationScheduler:
     async def AddNotification(self, notif: BaseNotification):
         """Добавляет уведомление и планирует его вывод"""
         self.notifications[notif.ID] = notif
-        # notification_id = str(uuid.uuid4())
-        # self.notifications[notification_id] = {
-        #     "chat_id": chat_id,
-        #     "text": text,
-        #     "time": notify_time
-        # }
         
         # Планируем задачу
         self.scheduler.add_job(
@@ -44,7 +38,7 @@ class NotificationScheduler:
             notification = self.notifications.pop(notification_id)
             if self.bot:
                 await self.bot.send_message(
-                    chat_id=notification.ChatID,
+                    chat_id=notification.ChatIDs,
                     text=notification.GetMessageText()
                 )
     
