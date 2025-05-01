@@ -85,7 +85,7 @@ if __name__ == "__main__":
     logging.getLogger('apscheduler').setLevel(logging.WARNING)  # Отключаем INFO-логирование от APScheduler
 
     notifServ = NotificationService(bot)
-    asyncio.run(notifServ.AddStorage(None)) # TODO
+    asyncio.run(notifServ.AddStorage(PgRedisStorage(pgcred, redcred)))
 
     dp.update.outer_middleware(LogMiddleware(logger))
     dp.update.outer_middleware(StorageMiddleware(PgRedisStorage, pgcred, redcred))

@@ -3,6 +3,9 @@ from pydantic_core import from_json
 from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief
+from models.notification import MapperNotification, \
+    BaseNotification
+from notifications.NotifRegistry import NotifRegistryBase
 from models.telegram import TelegramUserAgreement
 from uuid import UUID
 from psycopg2.extras import RealDictCursor
@@ -390,3 +393,76 @@ class PgRedisStorage(BaseStorage):
         self.conn.commit()
         cur.close()
         
+    def GetEventByID(self, id: UUID) -> Event:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(f"""
+            SELECT id, evname, evdate, place, photo_amount, video_amount, created_by, created_at
+            FROM event
+            WHERE id = '{id}'
+        """)
+        row = cur.fetchone()
+        cur.close()
+        eventID = UUID(hex=row['id'])
+        chief = self.getEventChief(eventID)
+        activists = self.getEventMembers(eventID)
+        event = Event(
+            ID = eventID,
+            Name=row['evname'], 
+            Date=row['evdate'], 
+            Place=row['place'],
+            PhotoCount=row['photo_amount'], 
+            VideoCount=row['video_amount'], 
+            Chief=chief, 
+            Activists=activists,
+            CreatedAt=row['created_at'],
+            CreatedBy=UUID(hex=row['created_by']),
+        )
+        return event
+
+    """Notifications"""
+    def GetAllNotDoneNotifs(self) -> list[BaseNotification]:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(f"""
+            SELECT n.id as notif_id, n.extra_text, n.send_time, n.type_notif, e.id as event_id
+            FROM notifications n
+            LEFT JOIN notif_event ne
+            ON ne.notif_id = n.id
+            LEFT JOIN event e
+            ON ne.event_id = e.id
+            WHERE n.done = FALSE;
+        """)
+        rows = cur.fetchall()
+
+        def getChatIDs(notif_id: str) -> list[int]:
+            cur.execute(f"""
+                SELECT chat_id
+                FROM notif_tguser nm
+                JOIN tg_user a
+                ON nm.tguser_id = a.id
+                where nm.event_id = '{notif_id}'
+            """)
+            chatIDs = list(map(int, cur.fetchall()))
+            return chatIDs
+        
+        notifsRes = []
+        for r in rows:
+            print(r)
+            notifID = UUID(hex=r['notif_id'])
+            chatIDs = getChatIDs(r['notif_id'])
+            
+            notifClassName = MapperNotification.GetClassNameByType(r['type_notif'])
+            notifClass = NotifRegistryBase.GetClassByName(notifClassName)
+            if notifClass.RelatedToEvent():
+                if r['event_id'] is None:
+                    raise Exception("notification related to event hasn't got eventID")
+                eventID = UUID(hex=r['event_id'])
+                event = self.GetEventByID(eventID)
+                notification = notifClass(notifID, r['extra_text'], r['send_time'], chatIDs, event)
+            else:
+                notification = notifClass(notifID, r['extra_text'], r['send_time'], chatIDs)
+            print(notifID, r['extra_text'], r['send_time'], chatIDs)
+            notifsRes.append(notification)
+        cur.close()
+
+        return notifsRes
+

@@ -100,23 +100,41 @@ CREATE TABLE completed_event (
   CONSTRAINT completed_by_fkey FOREIGN KEY (completed_by) REFERENCES activist (id)
 );
 
-CREATE TABLE notification (
-  id UUID PRIMARY KEY,
-  send_time TIMESTAMP,
-  send_to UUID,
-  done BOOLEAN DEFAULT FALSE,
-  message text,
-  created_at TIMESTAMP,
-  created_by UUID,
-  CONSTRAINT send_time_notnull CHECK (send_time IS NOT NULL),
-  CONSTRAINT done_notnull CHECK (done IS NOT NULL),
-  CONSTRAINT message_notnull CHECK (message IS NOT NULL),
-  CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL),
-  CONSTRAINT created_by_notnull CHECK (created_by IS NOT NULL),
-  CONSTRAINT created_by_fkey FOREIGN KEY (created_by) REFERENCES tg_admin (id),
-  CONSTRAINT send_to_fkey FOREIGN KEY (send_to) REFERENCES activist (id)
+CREATE TYPE NOTIF_TYPE AS ENUM ('EventReminder', 'Info');
+
+CREATE TABLE notifications (
+    id UUID PRIMARY KEY,
+    extra_text TEXT,
+    send_time TIMESTAMP,
+    type_notif NOTIF_TYPE,
+    done BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP,
+    created_by UUID,    
+    CONSTRAINT send_time_notnull CHECK (send_time IS NOT NULL),
+    CONSTRAINT done_notnull CHECK (done IS NOT NULL),
+    CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL),
+    CONSTRAINT created_by_notnull CHECK (created_by IS NOT NULL)
 );
 
+CREATE TABLE IF NOT EXISTS notif_event (
+    notif_id UUID UNIQUE,
+    event_id UUID,
+    PRIMARY KEY (notif_id, event_id),
+    CONSTRAINT notif_id_notnull CHECK (notif_id IS NOT NULL),
+    CONSTRAINT notif_id_fkey FOREIGN KEY (notif_id) REFERENCES notifications (id),
+    CONSTRAINT event_id_notnull CHECK (event_id IS NOT NULL),
+    CONSTRAINT event_id_fkey FOREIGN KEY (event_id) REFERENCES event (id)
+);
+
+CREATE TABLE IF NOT EXISTS notif_tguser (
+    event_id UUID,
+    tguser_id UUID,
+    PRIMARY KEY (tguser_id, event_id),
+    CONSTRAINT event_id_notnull CHECK (event_id IS NOT NULL),
+    CONSTRAINT event_id_fkey FOREIGN KEY (event_id) REFERENCES event (id),
+    CONSTRAINT tguser_id_notnull CHECK (tguser_id IS NOT NULL),
+    CONSTRAINT tguser_id_fkey FOREIGN KEY (tguser_id) REFERENCES tg_user (id)
+);
 -- +goose StatementEnd
 -- +goose Down
 -- +goose StatementBegin

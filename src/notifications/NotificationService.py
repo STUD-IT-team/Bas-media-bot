@@ -82,6 +82,7 @@ class NotificationService:
 
     async def AddStorage(self, storage: Optional[BaseStorage]):
         self.storage = storage
+        storage.GetAllNotDoneNotifs()
         # TODO заполнить  self.notifScheduler данными из БД
         dataDB = [{
             'type': 'Info',

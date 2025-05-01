@@ -37,10 +37,11 @@ class NotificationScheduler:
         if notification_id in self.notifications:
             notification = self.notifications.pop(notification_id)
             if self.bot:
-                await self.bot.send_message(
-                    chat_id=notification.ChatIDs,
-                    text=notification.GetMessageText()
-                )
+                for charID in notification.ChatIDs:
+                    await self.bot.send_message(
+                        chat_id=charID,
+                        text=notification.GetMessageText()
+                    )
     
     async def Start(self):
         """Запускает планировщик"""

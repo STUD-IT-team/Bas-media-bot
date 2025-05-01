@@ -11,7 +11,7 @@ class FilterNotif:
 
     @classmethod
     def EventFilter(cls, notif: BaseNotification, eventID: UUID) -> bool:
-        if notif.GetEventID() is None:
+        if not notif.RelatedToEvent():
             return False
         return notif.GetEventID() == eventID
 

@@ -32,14 +32,12 @@ class BaseNotification(metaclass=NotifRegistryBase):
         """Возвращает текст сообщения (возможно сгенерированного по шаблону)"""
         raise NotImplementedError
     
-    def GetEventID(self) -> UUID:
+    @classmethod
+    def RelatedToEvent(self) -> bool:
         raise NotImplementedError
     
-    # def GetNotifyTime(self):
-    #     """Возвращает время отправки сообщения"""
-    #     return NotImplementedError()
-    # def GetChatID(self):
-    #     return NotImplementedError()
+    def GetEventID(self) -> UUID:
+        raise NotImplementedError
     
 
 class EventReminderNotif(BaseNotification):
@@ -52,6 +50,10 @@ class EventReminderNotif(BaseNotification):
             f"которое пройдет {self.Event.Date} в {self.Event.Place}\n\n{self.Text}"
         return msg
     
+    @classmethod
+    def RelatedToEvent(self) -> bool:
+        return True
+    
     def GetEventID(self) -> UUID:
         return self.Event.ID
     
@@ -61,6 +63,10 @@ class InfoNotif(BaseNotification):
 
     def GetMessageText(self) -> str:
         return self.Text
+    
+    @classmethod
+    def RelatedToEvent(self) -> bool:
+        return False
     
     def GetEventID(self) -> UUID:
         return None
