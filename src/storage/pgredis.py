@@ -4,7 +4,7 @@ from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief
 from models.telegram import TelegramUserAgreement
-from models.event import CanceledEvent
+from models.event import CanceledEvent, CompletedEvent
 from uuid import UUID
 from psycopg2.extras import RealDictCursor
 import psycopg2
@@ -248,6 +248,16 @@ class PgRedisStorage(BaseStorage):
         """, (event_id.hex, canceled_by.hex, datetime.now()))
         self.conn.commit()
         cur.close()
+    def CompleteEvent(self, event_id: UUID, completed_by: UUID):
+        from datetime import datetime
+        cur = self.conn.cursor()
+        cur.execute("""
+            INSERT INTO completed_event (event_id, completed_by, completed_at)
+            VALUES (%s, %s, %s)
+        """, (event_id.hex, completed_by.hex, datetime.now()))
+        self.conn.commit()
+        cur.close()
+
 
     def GetActiveEvents(self) -> list[Event]:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
