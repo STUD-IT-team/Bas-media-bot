@@ -1,6 +1,5 @@
 from aiogram import BaseMiddleware
 from typing import Dict, Any, Callable, Awaitable
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from notifications.NotificationService import NotificationService
 
 class NotificationsMiddleware(BaseMiddleware):

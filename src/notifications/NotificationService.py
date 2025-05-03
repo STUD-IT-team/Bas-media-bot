@@ -88,7 +88,7 @@ class NotificationService:
             n.Text = n.Text + f'\n{i}'
             i += 1
             n.ChatIDs = [937944297]
-            n.NotifyTime = datetime.now().replace(second=datetime.now().second)
+            n.NotifyTime = datetime.now().replace(hour=datetime.now().hour + 1)
             await self.notifScheduler.AddNotification(n)
 
 
