@@ -13,6 +13,7 @@ from keyboards.activist.choosing import MemberChoosingCancelKeyboard
 from datetime import datetime
 from uuid import UUID, uuid4
 from utils.strings import NewlineJoin, EnumerateStrings
+from utils.date_time import TIME_FORMAT, GetTimeDateFormatDescription, GetTimeDateFormatExample, ParseTimeDate
 from models.activist import Activist
 from notifications.NotificationService import NotificationService
 from models.notification import MapperNotification
@@ -20,20 +21,7 @@ from models.notification import MapperNotification
 KEY_NOTIF_CHATIDS = 'NotificationActivistsID'
 KEY_NOTIF_TIME = "NotificationTime"
 KEY_NOTIF_TEXT = "NotificationText"
-TIME_FORMAT = "%d-%m-%Y %H:%M"
 
-def GetTimeDateFormatDescription() -> str:
-    return "{День}-{Месяц}-{Год} {Час}:{Минуты}"
-
-def GetTimeDateFormatExample() -> str:
-    return "15-05-2022 18:00"
-
-def ParseTimeDate(dtstr : str) -> (datetime, bool):
-    try:
-        dt = datetime.strptime(dtstr, TIME_FORMAT)
-        return dt, True
-    except ValueError:
-        return None, False
 
 AdminAddNotificationRouter = Router()
 

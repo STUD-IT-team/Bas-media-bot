@@ -1,7 +1,15 @@
 # from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
+from enum import StrEnum
 from models.event import Event
+
+
+class TypeNotif(StrEnum):
+    EVENT_REMINDER = "event_reminder"
+    INFO = "info"
+    ASSIGNMENT = "assignment"
+    EVENT_REMOVE = "event_remove"
 
 class BaseNotification:
     pass
@@ -25,10 +33,10 @@ class NotifRegistryBase(type):
 """Маппер для БД"""
 class MapperNotification:
     __mapClsNmType = {
-        'EventReminderNotif': 'event_reminder',
-        'InfoNotif': 'info',
-        'AssignmentNotif': 'assignment',
-        'EventRemoveNotif': 'event_remove'
+        'EventReminderNotif': TypeNotif.EVENT_REMINDER,
+        'InfoNotif': TypeNotif.INFO,
+        'AssignmentNotif': TypeNotif.ASSIGNMENT,
+        'EventRemoveNotif': TypeNotif.EVENT_REMOVE
         
     }
     __mapTypeClsNm = {v: k for k, v in __mapClsNmType.items()}

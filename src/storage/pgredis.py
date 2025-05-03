@@ -109,7 +109,7 @@ class PgRedisStorage(BaseStorage):
             act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
         return act
     
-    def GetActivistByID(self, ID : UUID):
+    def GetActivistByID(self, ID : UUID) -> Activist:
         cur = self.conn.cursor()
         cur.execute("""
             SELECT activist.id, chat_id, acname, valid 
