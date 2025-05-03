@@ -83,34 +83,34 @@ class NotificationService:
         self.storage = storage
         notifications = storage.GetAllNotDoneNotifs()
         i = 1
-        for _ in range(4):
-            for n in notifications:
-                n.Text = n.Text + f'\n{i}'
-                i += 1
-                n.ChatIDs = [937944297]
-                n.NotifyTime = datetime.now().replace(second=datetime.now().second)
-                await self.notifScheduler.AddNotification(n)
+        # for _ in range(4):
+        for n in notifications:
+            n.Text = n.Text + f'\n{i}'
+            i += 1
+            n.ChatIDs = [937944297]
+            n.NotifyTime = datetime.now().replace(second=datetime.now().second)
+            await self.notifScheduler.AddNotification(n)
 
 
         # TODO удалить тестовые события
-        dataDB = [{
-            'type': 'info',
-            'data': [
-                uuid.uuid4(), 
-                "Пора пить кофе!", 
-                datetime.now().replace(second=datetime.now().second), 
-                [937944297]]
-        }, {
-            'type': 'event_reminder',
-            'data': [uuid.uuid4(), 
-                    "Проверить почту", 
-                    datetime.now().replace(second=datetime.now().second), 
-                    [937944297],
-                    create_test_event()]
-        }]
-        for data in dataDB:
-            n = MapperNotification.CreateNotification(data['type'], *data['data'])
-            await self.notifScheduler.AddNotification(n)
+        # dataDB = [{
+        #     'type': 'info',
+        #     'data': [
+        #         uuid.uuid4(), 
+        #         "Пора пить кофе!", 
+        #         datetime.now().replace(second=datetime.now().second), 
+        #         [937944297]]
+        # }, {
+        #     'type': 'event_reminder',
+        #     'data': [uuid.uuid4(), 
+        #             "Проверить почту", 
+        #             datetime.now().replace(second=datetime.now().second), 
+        #             [937944297],
+        #             create_test_event()]
+        # }]
+        # for data in dataDB:
+        #     n = MapperNotification.CreateNotification(data['type'], *data['data'])
+        #     await self.notifScheduler.AddNotification(n)
             # n = notifClass(*data['data'])
             # print(n.Text, FilterNotif.TypeFilter(n, 'Info'))
             # print(n.Text, FilterNotif.TypeFilter(n, 'EventReminder'))
@@ -118,8 +118,11 @@ class NotificationService:
     
     async def AddNotification(self, notif: BaseNotification):
         if not self.storage is None:
-            #TODO на каждое добавление уведо можно дополнительно повесить удаление старых уведо при необходимости
-            pass # TODO add note
+            self.storage.PutNotification(notif)
+            # на каждое добавление уведо дополнительно повешено установление Done уведо
+            doneNotifIDs = await self.notifScheduler.PopDoneNotifications()
+            self.storage.SetDoneNotifications(doneNotifIDs)
+
 
         await self.notifScheduler.AddNotification(notif)
 

@@ -7,6 +7,7 @@ from models.notification import MapperNotification, \
     BaseNotification
 from models.telegram import TelegramUserAgreement
 from uuid import UUID
+from datetime import datetime
 from psycopg2.extras import RealDictCursor
 import psycopg2
 
@@ -461,3 +462,40 @@ class PgRedisStorage(BaseStorage):
 
         return notifsRes
 
+    def PutNotification(self, notif: BaseNotification):
+        type_notif = MapperNotification.GetTypeByClassName(notif.__class__.__name__)
+
+        cur = self.conn.cursor()
+        cur.execute("""
+            INSERT INTO notifications (id, extra_text, send_time, type_notif, done, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (notif.ID.hex, notif.Text, notif.NotifyTime, type_notif, False, datetime.now()))
+        
+        # добавляем связь с пользователями
+        for chatID in notif.ChatIDs:
+            tgUser = self.GetTgUser(chatID)
+            cur.execute("""
+                INSERT INTO notif_tguser (notif_id, tguser_id)
+                VALUES (%s, %s)
+            """, (notif.ID.hex, tgUser.ID.hex))
+
+        # добавляем связь с событием
+        if notif.RelatedToEvent():
+            cur.execute("""
+                INSERT INTO notif_event (notif_id, event_id)
+                VALUES (%s, %s)
+            """, (notif.ID.hex, notif.GetEventID().hex))
+
+        self.conn.commit()
+        cur.close()
+
+    def SetDoneNotifications(self, notifIDs: list[UUID]):
+        cur = self.conn.cursor()
+        for n_id in notifIDs:
+            cur.execute(f"""
+                UPDATE notifications
+                SET done = TRUE
+                WHERE id = '{n_id}';
+            """)
+        self.conn.commit()
+        cur.close()

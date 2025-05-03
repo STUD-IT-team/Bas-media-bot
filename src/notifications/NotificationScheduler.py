@@ -16,8 +16,8 @@ class NotificationScheduler:
         self.scheduler = AsyncIOScheduler()
         self.bot = bot
         self.notifications: Dict[UUID, BaseNotification] = {}
+        self.doneNotifications: list[UUID] = []
         self.limiter = AsyncLimiter(30, 60)  # 30 уведомлений в 60 секунд
-        # self.notifications: Dict[str, Dict] = {}  # {id: {"text": str, "time": datetime}}
         
     async def AddNotification(self, notif: BaseNotification):
         """Добавляет уведомление и планирует его вывод"""
@@ -47,6 +47,7 @@ class NotificationScheduler:
         async with self.limiter:
             if self.bot and notification_id in self.notifications:
                 notification = self.notifications.pop(notification_id)
+                self.doneNotifications.append(notification.ID)
                 for charID in notification.ChatIDs:
                     await self.bot.send_message(
                         chat_id=charID,
@@ -64,6 +65,11 @@ class NotificationScheduler:
             self.scheduler.shutdown()
             print("Сервис уведомлений остановлен.")
     
+    async def PopDoneNotifications(self) -> list[UUID]:
+        res = self.doneNotifications[:]
+        self.doneNotifications.clear()
+        return res
+
     # async def cancel_notification(self, notification_id: str) -> bool:
     #     """Отменяет запланированное уведомление"""
     #     if notification_id in self.notifications:
