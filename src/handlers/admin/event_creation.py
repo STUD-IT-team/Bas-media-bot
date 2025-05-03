@@ -216,15 +216,16 @@ async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSM
 
     try:
         for cntDays in [1, 3]:
-            n = MapperNotification.CreateNotification(
-                TypeNotif.EVENT_REMINDER, 
-                uuid4(),
-                "",
-                datetime.now() + timedelta(days=cntDays),
-                chatIDs,
-                event)
-            print(f"ADD - {n}")
-            await notifServ.AddNotification(n)
+            if event.Date - timedelta(days=cntDays) >= datetime.now():
+                n = MapperNotification.CreateNotification(
+                    TypeNotif.EVENT_REMINDER, 
+                    uuid4(),
+                    "",
+                    datetime.now() + timedelta(days=cntDays),
+                    chatIDs,
+                    event)
+                print(f"ADD - {n}")
+                await notifServ.AddNotification(n)
         n = MapperNotification.CreateNotification(
             TypeNotif.ASSIGNMENT, 
             uuid4(),
