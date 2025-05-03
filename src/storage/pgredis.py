@@ -2,12 +2,12 @@ from pydantic import BaseModel
 from pydantic_core import from_json
 from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
-from models.event import Event, EventActivist, EventChief
+from models.event import Event, EventActivist, EventChief, EventForActivist
 from models.telegram import TelegramUserAgreement
 from uuid import UUID
 from psycopg2.extras import RealDictCursor
 import psycopg2
-
+from datetime import datetime
 import redis
 
 class PostgresCredentials(BaseModel):
@@ -389,4 +389,51 @@ class PgRedisStorage(BaseStorage):
         """)
         self.conn.commit()
         cur.close()
+    
+    def GetEventsByActivistID(self, ActivistID: UUID) -> list[EventForActivist]:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT e.id AS event_id, e.evname, e.evdate, e.photo_amount, e.video_amount
+            FROM event_member em
+            JOIN event e ON em.event_id = e.id
+            WHERE em.activist_id = %s
+        """, (ActivistID.hex,))
         
+        events = []
+        for row in cur.fetchall():
+            event_id = row[0]
+            chief = self.GetTgUserActivistByActivistID(self.getEventChief(UUID(hex=event_id)).Activist.ID)
+            event = EventForActivist( 
+                ID = UUID(hex=event_id),
+                Name = row[1],  
+                Date = row[2], 
+                Chief = chief, 
+                PhotoCount = row[3],
+                VideoCount = row[4]
+            )
+            events.append(event)
+
+        cur.close()
+        return events
+
+    def GetTgUserActivistByActivistID(self, ActivistID: UUID) -> TgUserActivist:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT a.tg_user_id, a.acname, a.valid, t.chat_id, t.tg_username, t.agreed
+            FROM activist a
+            JOIN tg_user t ON a.tg_user_id = t.id
+            WHERE a.id = %s
+        """, (ActivistID.hex,))
+        result = cur.fetchone()
+
+        TgUserAct = TgUserActivist(
+            IDTgUser = UUID(hex=result[0]),
+            IDActivist = ActivistID,
+            ChatID = result[3],
+            Username = result[4],
+            Name = result[1],
+            Valid = result[2],
+            Agreed = result[5]
+        )
+        return TgUserAct
+    
