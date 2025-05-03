@@ -14,7 +14,7 @@ from models.event import EventChief, EventActivist
 from models.activist import Activist
 from datetime import timedelta
 from models.notification import MapperNotification
-from notifications.NotifFilter import FilterNotif
+from notifications.NotifFilter import BaseFilterNotif
 
 # ID события
 event_id = uuid4()
@@ -117,14 +117,19 @@ class NotificationService:
             # print(n.Text, FilterNotif.EventFilter(n, event_id))
     
     async def AddNotification(self, notif: BaseNotification):
+        await self.notifScheduler.AddNotification(notif)
         if not self.storage is None:
             self.storage.PutNotification(notif)
             # на каждое добавление уведо дополнительно повешено установление Done уведо
             doneNotifIDs = await self.notifScheduler.PopDoneNotifications()
             self.storage.SetDoneNotifications(doneNotifIDs)
 
-
-        await self.notifScheduler.AddNotification(notif)
+    async def RemoveNotifications(self, filter: BaseFilterNotif):
+        await self.notifScheduler.RemoveNotifications(filter)
+        if not self.storage is None:
+            removed = self.storage.RemoveNotification(filter)
+            for n in removed:
+                self.storage.RemoveNotification(n.ID)
 
     async def StartScheduler(self):
         await self.notifScheduler.Start()

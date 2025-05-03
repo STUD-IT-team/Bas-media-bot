@@ -8,6 +8,7 @@ from uuid import UUID
 from aiolimiter import AsyncLimiter
 
 from models.notification import BaseNotification
+from notifications.NotifFilter import BaseFilterNotif
 # from models.notification import Notification
 
 
@@ -69,6 +70,17 @@ class NotificationScheduler:
         res = self.doneNotifications[:]
         self.doneNotifications.clear()
         return res
+    
+    async def RemoveNotifications(self, filter: BaseFilterNotif) -> list[BaseFilterNotif]:
+        remaining = []
+        removed = []
+        for n in self.notifications:
+            if filter(n):
+                remaining.append(n)
+            else:
+                removed.append(n)
+        self.notifications = remaining[:]
+        return removed                
 
     # async def cancel_notification(self, notification_id: str) -> bool:
     #     """Отменяет запланированное уведомление"""

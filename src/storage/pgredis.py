@@ -499,3 +499,20 @@ class PgRedisStorage(BaseStorage):
             """)
         self.conn.commit()
         cur.close()
+
+    def RemoveNotification(self, notifID: UUID):
+        cur = self.conn.cursor()
+        cur.execute(f"""
+            DELETE FROM notif_event
+            WHERE notif_id = '{notifID}';
+        """)
+        cur.execute(f"""
+            DELETE FROM notif_tguser
+            WHERE notif_id = '{notifID}';
+        """)
+        cur.execute(f"""
+            DELETE FROM notifications
+            WHERE id = '{notifID}';
+        """)
+        self.conn.commit()
+        cur.close()
