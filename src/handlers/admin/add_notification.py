@@ -17,10 +17,23 @@ from models.activist import Activist
 from notifications.NotificationService import NotificationService
 from models.notification import MapperNotification
 
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 KEY_NOTIF_CHATIDS = 'NotificationActivistsID'
 KEY_NOTIF_TIME = "NotificationTime"
 KEY_NOTIF_TEXT = "NotificationText"
+TIME_FORMAT = "%d-%m-%Y %H:%M"
+
+def GetTimeDateFormatDescription() -> str:
+    return "{День}-{Месяц}-{Год} {Час}:{Минуты}"
+
+def GetTimeDateFormatExample() -> str:
+    return "15-05-2022 18:00"
+
+def ParseTimeDate(dtstr : str) -> (datetime, bool):
+    try:
+        dt = datetime.strptime(dtstr, TIME_FORMAT)
+        return dt, True
+    except ValueError:
+        return None, False
 
 AdminAddNotificationRouter = Router()
 
@@ -53,9 +66,7 @@ async def AdminEnteringText(message : Message, storage : BaseStorage, state : FS
     await state.update_data(data)
     await state.set_state(AdminAddNotificationStates.EnteringTime)
     logger.info(f"STATE = AdminAddNotificationStates.EnteringTime")
-    await message.answer("Введите время, когда уведомление будет отправлено, в формате: " + \
-                         "сейчас/ГГГГ-ММ-ДД ЧЧ:ММ:СС", 
-                         reply_markup=CancelKeyboard.Create())
+    await message.answer(f"Введите дату и время мероприятия в формате\n{GetTimeDateFormatDescription()} (Пример: {GetTimeDateFormatExample()})", reply_markup=CancelKeyboard.Create())
     
 def GetNotChosenChatIDs(storage : BaseStorage, context : dict[str, any]) -> list[Activist]:
     acts = storage.GetValidActivists()
@@ -70,26 +81,15 @@ async def AdminEnteringTime(message : Message, storage : BaseStorage, state : FS
     if timeText.lower().strip() == "сейчас":
         timeRes = datetime.now()
     else:  
-         # Преобразование в datetime
-        try:
-            timeText = timeText.strip()
-            date_str, time_str = timeText.split()
-            timeRes = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
-        except Exception as e:
-            await message.answer("Время введено в неверном формате.")
-            await message.answer("Введите время, когда уведомление будет отправлено, в формате: " + \
-                                "сейчас/ГГГГ-ММ-ДД ЧЧ:ММ:СС", 
-                                reply_markup=CancelKeyboard.Create())
+        timeRes, is_valid = ParseTimeDate(message.text)
+        if not is_valid:
+            await message.answer(f"Неправильный формат даты и времени. Пожалуйста, введите дату и время в формате\n{GetTimeDateFormatDescription()} (Пример: {GetTimeDateFormatExample()})", reply_markup=CancelKeyboard.Create())
             return
-        if timeRes < datetime.now():
+        elif timeRes < datetime.now():
             await message.answer("Введите время в будущем.")
-            await message.answer("Введите время, когда уведомление будет отправлено, в формате: " + \
-                                "сейчас/ГГГГ-ММ-ДД ЧЧ:ММ:СС", 
-                                reply_markup=CancelKeyboard.Create())
+            await message.answer(f"Введите дату и время мероприятия в формате\n{GetTimeDateFormatDescription()} (Пример: {GetTimeDateFormatExample()})", reply_markup=CancelKeyboard.Create())
             return
         
-    # # Преобразуем строку обратно в datetime
-    # saved_datetime = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
     data = await state.get_data()
     data[KEY_NOTIF_TIME] = timeRes.strftime(TIME_FORMAT)
     data[KEY_NOTIF_CHATIDS] = []
