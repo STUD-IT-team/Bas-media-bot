@@ -391,58 +391,49 @@ class PgRedisStorage(BaseStorage):
         cur.close()
     
     def GetEventsByActivistID(self, ActivistID: UUID) -> list[EventForActivist]:
-        
         cur = self.conn.cursor()
-        
         cur.execute("""
-            SELECT event_id FROM event_member WHERE activist_id = %s
+            SELECT e.id AS event_id, e.evname, e.evdate, e.photo_amount, e.video_amount
+            FROM event_member em
+            JOIN event e ON em.event_id = e.id
+            WHERE em.activist_id = %s
         """, (ActivistID.hex,))
-        event_ids = cur.fetchall()
-
+        
         events = []
-        if event_ids:
-            for event_id in event_ids:
-                cur.execute("""
-                    SELECT evname, evdate, photo_amount, video_amount FROM event WHERE id = %s
-                """, (event_id[0],))
-                row = cur.fetchone()
-
-                chief = self.GetTgUserActivistByActivistID(self.getEventChief(UUID(hex=event_id[0])).Activist.ID)
-
-                event = EventForActivist( 
-                    ID = UUID(hex=event_id[0]),
-                    Name = row[0],  
-                    Date = row[1], 
-                    Chief = chief, 
-                    PhotoCount = row[2],
-                    VideoCount = row[3]
-                )
-                events.append(event)
+        for row in cur.fetchall():
+            event_id = row[0]
+            chief = self.GetTgUserActivistByActivistID(self.getEventChief(UUID(hex=event_id)).Activist.ID)
+            event = EventForActivist( 
+                ID = UUID(hex=event_id),
+                Name = row[1],  
+                Date = row[2], 
+                Chief = chief, 
+                PhotoCount = row[3],
+                VideoCount = row[4]
+            )
+            events.append(event)
 
         cur.close()
         return events
 
     def GetTgUserActivistByActivistID(self, ActivistID: UUID) -> TgUserActivist:
-
         cur = self.conn.cursor()
-
         cur.execute("""
-            SELECT tg_user_id, acname, valid FROM activist WHERE id = %s
+            SELECT a.tg_user_id, a.acname, a.valid, t.chat_id, t.tg_username, t.agreed
+            FROM activist a
+            JOIN tg_user t ON a.tg_user_id = t.id
+            WHERE a.id = %s
         """, (ActivistID.hex,))
-        fromActivist = cur.fetchone()
-        cur.execute("""
-            SELECT chat_id, tg_username, agreed FROM tg_user WHERE id = %s
-        """, (fromActivist[0],))
-        fromTgUser = cur.fetchone()
+        result = cur.fetchone()
 
         TgUserAct = TgUserActivist(
-            IDTgUser = UUID(hex=fromActivist[0]),
+            IDTgUser = UUID(hex=result[0]),
             IDActivist = ActivistID,
-            ChatID = fromTgUser[0],
-            Username = fromTgUser[1],
-            Name = fromActivist[1],
-            Valid = fromActivist[2],
-            Agreed = fromTgUser[2]
+            ChatID = result[3],
+            Username = result[4],
+            Name = result[1],
+            Valid = result[2],
+            Agreed = result[5]
         )
         return TgUserAct
     
