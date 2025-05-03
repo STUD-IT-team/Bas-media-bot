@@ -4,10 +4,10 @@ from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief
 from models.telegram import TelegramUserAgreement
+from models.event import CanceledEvent
 from uuid import UUID
 from psycopg2.extras import RealDictCursor
 import psycopg2
-
 import redis
 
 class PostgresCredentials(BaseModel):
@@ -143,7 +143,7 @@ class PgRedisStorage(BaseStorage):
                 INSERT INTO event (id, evname, evdate, place, photo_amount, video_amount, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
             """, (event.ID.hex, event.Name, event.Date, event.Place, event.PhotoCount, event.VideoCount, event.CreatedBy.hex, event.CreatedAt))
 
-            if event.IsCancelled and isinstance(event, CancelledEvent):
+            if event.IsCancelled and isinstance(event, CanceledEvent):
                 cur.execute("""
                     INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
                 """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
@@ -239,6 +239,15 @@ class PgRedisStorage(BaseStorage):
             act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
             return act
         return None
+    def CancelEvent(self, event_id: UUID, canceled_by: UUID):
+        from datetime import datetime
+        cur = self.conn.cursor()
+        cur.execute("""
+            INSERT INTO canceled_event (event_id, canceled_by, canceled_at)
+            VALUES (%s, %s, %s)
+        """, (event_id.hex, canceled_by.hex, datetime.now()))
+        self.conn.commit()
+        cur.close()
 
     def GetActiveEvents(self) -> list[Event]:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
