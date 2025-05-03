@@ -2,15 +2,33 @@
 from uuid import UUID
 from datetime import datetime
 from models.event import Event
-from notifications.NotifRegistry import NotifRegistryBase
+
+class BaseNotification:
+    pass
+
+class NotifRegistryBase(type):
+    NOTIF_REGISTRY = {}
+
+    def __new__(cls, name, bases, atrs):
+        new_cls = type.__new__(cls, name, bases, atrs)
+        cls.NOTIF_REGISTRY[new_cls.__name__.lower()] = new_cls
+        return new_cls
+
+    @classmethod
+    def get_notif_registry(cls):
+        return dict(cls.NOTIF_REGISTRY)
+    
+    @classmethod
+    def GetClassByName(cls, name):
+        return cls.NOTIF_REGISTRY[name.lower()]
 
 """Маппер для БД"""
 class MapperNotification:
     __mapClsNmType = {
-        'EventReminderNotif': 'EventReminder',
-        'InfoNotif': 'Info',
-        'AssignmentNotif': 'Assignment',
-        'EventRemoveNotif': 'EventRemove'
+        'EventReminderNotif': 'event_reminder',
+        'InfoNotif': 'info',
+        'AssignmentNotif': 'assignment',
+        'EventRemoveNotif': 'event_remove'
         
     }
     __mapTypeClsNm = {v: k for k, v in __mapClsNmType.items()}
@@ -22,6 +40,17 @@ class MapperNotification:
     @classmethod
     def GetTypeByClassName(cls, clsName: str) -> str:
         return cls.__mapClsNmType[clsName]
+
+    @classmethod
+    def GetClassByType(cls, type: str) -> BaseNotification:
+        notifClassName = cls.GetClassNameByType(type)
+        return NotifRegistryBase.GetClassByName(notifClassName)
+    
+    @classmethod
+    def CreateNotification(cls, type: str, *args) -> BaseNotification:
+        notifClassName = cls.GetClassNameByType(type)
+        notifClass = NotifRegistryBase.GetClassByName(notifClassName)
+        return notifClass(*args)
 
 
 class BaseNotification(metaclass=NotifRegistryBase):

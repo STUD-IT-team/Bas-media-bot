@@ -100,7 +100,7 @@ CREATE TABLE completed_event (
   CONSTRAINT completed_by_fkey FOREIGN KEY (completed_by) REFERENCES activist (id)
 );
 
-CREATE TYPE NOTIF_TYPE AS ENUM ('EventReminder', 'Info', 'Assignment', 'EventRemove');
+CREATE TYPE NOTIF_TYPE AS ENUM ('event_reminder', 'info', 'assignment', 'event_remove');
 
 CREATE TABLE notifications (
     id UUID PRIMARY KEY,
@@ -109,14 +109,14 @@ CREATE TABLE notifications (
     type_notif NOTIF_TYPE,
     done BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP,
-    created_by UUID,    
+    -- created_by UUID,    
     CONSTRAINT send_time_notnull CHECK (send_time IS NOT NULL),
     CONSTRAINT done_notnull CHECK (done IS NOT NULL),
-    CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL),
-    CONSTRAINT created_by_notnull CHECK (created_by IS NOT NULL)
+    CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL)
+    -- CONSTRAINT created_by_notnull CHECK (created_by IS NOT NULL)
 );
 
-CREATE TABLE IF NOT EXISTS notif_event (
+CREATE TABLE notif_event (
     notif_id UUID UNIQUE,
     event_id UUID,
     PRIMARY KEY (notif_id, event_id),
@@ -126,12 +126,12 @@ CREATE TABLE IF NOT EXISTS notif_event (
     CONSTRAINT event_id_fkey FOREIGN KEY (event_id) REFERENCES event (id)
 );
 
-CREATE TABLE IF NOT EXISTS notif_tguser (
-    event_id UUID,
+CREATE TABLE notif_tguser (
+    notif_id UUID,
     tguser_id UUID,
-    PRIMARY KEY (tguser_id, event_id),
-    CONSTRAINT event_id_notnull CHECK (event_id IS NOT NULL),
-    CONSTRAINT event_id_fkey FOREIGN KEY (event_id) REFERENCES event (id),
+    PRIMARY KEY (tguser_id, notif_id),
+    CONSTRAINT notif_id_notnull CHECK (notif_id IS NOT NULL),
+    CONSTRAINT notif_id_fkey FOREIGN KEY (notif_id) REFERENCES notifications (id),
     CONSTRAINT tguser_id_notnull CHECK (tguser_id IS NOT NULL),
     CONSTRAINT tguser_id_fkey FOREIGN KEY (tguser_id) REFERENCES tg_user (id)
 );

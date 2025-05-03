@@ -5,7 +5,6 @@ from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief
 from models.notification import MapperNotification, \
     BaseNotification
-from notifications.NotifRegistry import NotifRegistryBase
 from models.telegram import TelegramUserAgreement
 from uuid import UUID
 from psycopg2.extras import RealDictCursor
@@ -423,25 +422,23 @@ class PgRedisStorage(BaseStorage):
     def GetAllNotDoneNotifs(self) -> list[BaseNotification]:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(f"""
-            SELECT n.id as notif_id, n.extra_text, n.send_time, n.type_notif, e.id as event_id
+            SELECT n.id as notif_id, n.extra_text, n.send_time, n.type_notif, ne.event_id as event_id
             FROM notifications n
             LEFT JOIN notif_event ne
             ON ne.notif_id = n.id
-            LEFT JOIN event e
-            ON ne.event_id = e.id
             WHERE n.done = FALSE;
         """)
         rows = cur.fetchall()
 
         def getChatIDs(notif_id: str) -> list[int]:
             cur.execute(f"""
-                SELECT chat_id
-                FROM notif_tguser nm
-                JOIN tg_user a
-                ON nm.tguser_id = a.id
-                where nm.event_id = '{notif_id}'
+                SELECT  chat_id
+                FROM notif_tguser nu
+                JOIN tg_user u
+                ON nu.tguser_id = u.id
+                WHERE nu.notif_id = '{notif_id}'; 
             """)
-            chatIDs = list(map(int, cur.fetchall()))
+            chatIDs = list(map(lambda x: int(x['chat_id']), cur.fetchall()))
             return chatIDs
         
         notifsRes = []
@@ -449,17 +446,16 @@ class PgRedisStorage(BaseStorage):
             notifID = UUID(hex=r['notif_id'])
             chatIDs = getChatIDs(r['notif_id'])
             
-            notifClassName = MapperNotification.GetClassNameByType(r['type_notif'])
-            notifClass = NotifRegistryBase.GetClassByName(notifClassName)
+            notifClass = MapperNotification.GetClassByType(r['type_notif'])
             if notifClass.RelatedToEvent():
                 if r['event_id'] is None:
                     raise Exception("notification related to event hasn't got eventID")
                 eventID = UUID(hex=r['event_id'])
                 event = self.GetEventByID(eventID)
-                notification = notifClass(notifID, r['extra_text'], r['send_time'], chatIDs, event)
+                argsCreateNotif = [notifID, r['extra_text'], r['send_time'], chatIDs, event]
             else:
-                notification = notifClass(notifID, r['extra_text'], r['send_time'], chatIDs)
-            # print(notifID, r['extra_text'], r['send_time'], chatIDs)
+                argsCreateNotif = [notifID, r['extra_text'], r['send_time'], chatIDs]
+            notification = MapperNotification.CreateNotification(r['type_notif'], *argsCreateNotif)
             notifsRes.append(notification)
         cur.close()
 

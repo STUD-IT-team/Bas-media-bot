@@ -7,7 +7,6 @@ from datetime import datetime
 from storage.storage import BaseStorage
 from notifications.NotificationScheduler import NotificationScheduler
 from models.notification import BaseNotification
-from notifications.NotifRegistry import NotifRegistryBase
 from models.event import Event
 
 from uuid import UUID, uuid4
@@ -83,31 +82,34 @@ class NotificationService:
     async def AddStorage(self, storage: Optional[BaseStorage]):
         self.storage = storage
         notifications = storage.GetAllNotDoneNotifs()
-        for n in notifications:
-            n.ChatIDs = [937944297]
-            n.NotifyTime = datetime.now().replace(second=datetime.now().second)
-            await self.notifScheduler.AddNotification(n)
+        i = 1
+        for _ in range(4):
+            for n in notifications:
+                n.Text = n.Text + f'\n{i}'
+                i += 1
+                n.ChatIDs = [937944297]
+                n.NotifyTime = datetime.now().replace(second=datetime.now().second)
+                await self.notifScheduler.AddNotification(n)
 
 
         # TODO удалить тестовые события
         dataDB = [{
-            'type': 'Info',
+            'type': 'info',
             'data': [
                 uuid.uuid4(), 
                 "Пора пить кофе!", 
-                datetime.now().replace(second=datetime.now().second + 5), 
+                datetime.now().replace(second=datetime.now().second), 
                 [937944297]]
         }, {
-            'type': 'EventReminder',
+            'type': 'event_reminder',
             'data': [uuid.uuid4(), 
                     "Проверить почту", 
-                    datetime.now().replace(second=datetime.now().second + 7), 
+                    datetime.now().replace(second=datetime.now().second), 
                     [937944297],
                     create_test_event()]
         }]
         for data in dataDB:
-            notifClass = NotifRegistryBase.GetClassByName(MapperNotification.GetClassNameByType(data['type']))
-            n = notifClass(*data['data'])
+            n = MapperNotification.CreateNotification(data['type'], *data['data'])
             await self.notifScheduler.AddNotification(n)
             # n = notifClass(*data['data'])
             # print(n.Text, FilterNotif.TypeFilter(n, 'Info'))
