@@ -19,6 +19,7 @@ class AdminEventCreatingStates(StatesGroup):
     EnteringVideoCount = State()
     ChoosingMembers = State()
     ChoosingChief = State()
+    Confirmation = State()
 
 class AdminTaskCancellingStates(StatesGroup):
     ChoosingReport = State()
@@ -31,6 +32,7 @@ class AdminNewMemberStates(StatesGroup):
 
 class AdminMemberDeletingStates(StatesGroup):
     ChoosingMember = State()
+    ConfirmingDelMember = State()
 
 class AdminMailingStates(StatesGroup):
     EnteringText = State()

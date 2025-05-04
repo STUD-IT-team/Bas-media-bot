@@ -12,7 +12,7 @@ class AdminDefaultKeyboard:
     BroadcastButtonText = "Массовая рассылка"
 
     @staticmethod
-    def Сreate():
+    def Create():
         return ReplyKeyboardMarkup(
             keyboard=[
                 [KeyboardButton(text=__class__.AddEventButtonText)],
@@ -23,6 +23,20 @@ class AdminDefaultKeyboard:
                 [KeyboardButton(text=__class__.DeleteMemberButtonText)],
                 [KeyboardButton(text=__class__.BroadcastButtonText)],
                 [KeyboardButton(text=__class__.ExportButtonText)]
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=False
+        )
+    
+
+class CancelAddMemberKeyboard:
+    CancelAddMemberButtonText = "Отмена"
+
+    @staticmethod
+    def Create():
+        return ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(text=__class__.CancelAddMemberButtonText)],
             ],
             resize_keyboard=True,
             one_time_keyboard=False

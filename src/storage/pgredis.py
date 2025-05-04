@@ -1,13 +1,13 @@
 from pydantic import BaseModel
 from pydantic_core import from_json
 from storage.storage import BaseStorage
-from models.activist import Activist, Admin
-from models.event import Event, EventActivist, EventChief
+from models.activist import Activist, Admin, TgUser, TgUserActivist
+from models.event import Event, EventActivist, EventChief, EventForActivist
 from models.telegram import TelegramUserAgreement
 from uuid import UUID
 from psycopg2.extras import RealDictCursor
 import psycopg2
-
+from datetime import datetime
 import redis
 
 class PostgresCredentials(BaseModel):
@@ -61,6 +61,7 @@ class PgRedisStorage(BaseStorage):
         if row:
             agreement = TelegramUserAgreement(ChatID=row[0], Username=row[1], Agreed=row[2])
             try:
+                self.redis.delete(str(chatID))
                 self.redis.set(name=str(chatID), value=agreement.model_dump_json())
             finally:
                 return agreement
@@ -77,10 +78,10 @@ class PgRedisStorage(BaseStorage):
         cur.close()
 
         try:
+            self.redis.delete(str(chatID))
             self.redis.set(name=str(chatID), value=agreement.model_dump_json())
         finally:
             return
-
 
     def PutTgUser(self, chat_id : int, username : str):
         cur = self.conn.cursor()
@@ -108,7 +109,10 @@ class PgRedisStorage(BaseStorage):
     def GetActivistByID(self, ID : UUID):
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE activist.id = %s AND valid = true;
+            SELECT activist.id, chat_id, acname, valid 
+            FROM activist JOIN tg_user 
+            ON tg_user.id = activist.tg_user_id 
+            WHERE activist.id = %s AND valid = true;
         """, (ID.hex,))
         row = cur.fetchone()
         cur.close()
@@ -121,7 +125,7 @@ class PgRedisStorage(BaseStorage):
         cur = self.conn.cursor()
 
         cur.execute("""
-            SELECT tg_admin.id, chat_id FROM tg_admin JOIN tg_user ON tg_user.id = tg_admin.tg_user_id WHERE chat_id = %s;
+            SELECT tg_admin.id, tg_user.chat_id, tg_user.tg_username, tg_admin.adname, tg_admin.valid FROM tg_admin JOIN tg_user ON tg_user.id = tg_admin.tg_user_id WHERE chat_id = %s;
         """, (chatID,))
 
         row = cur.fetchone()
@@ -129,41 +133,48 @@ class PgRedisStorage(BaseStorage):
         
         adm = None
         if row:
-            adm = Admin(ID=row[0], ChatID=row[1])
+            adm = Admin(ID=row[0], ChatID=row[1], UserName=row[2], Name=row[3], Valid=row[4])
         return adm
     
     def PutEvent(self, event: Event):
         cur = self.conn.cursor()
-
-        cur.execute("""
-            INSERT INTO event (id, evname, evdate, place, photo_amount, video_amount, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
-        """, (event.ID.hex, event.Name, event.Date, event.Place, event.PhotoCount, event.VideoCount, event.CreatedBy.hex, event.CreatedAt))
-
-        if event.IsCancelled and isinstance(event, CancelledEvent):
+        try:
             cur.execute("""
-                INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
-            """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
-        elif event.IsCompleted and isinstance(event, CompletedEvent):
-            cur.execute("""
-                INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
-            """, (event.ID.hex, event.CompletedBy.hex, event.CompletedAt))
+                INSERT INTO event (id, evname, evdate, place, photo_amount, video_amount, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
+            """, (event.ID.hex, event.Name, event.Date, event.Place, event.PhotoCount, event.VideoCount, event.CreatedBy.hex, event.CreatedAt))
 
-        # Inserting activists
-        cur.execute("""
-            INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, true)
-        """, (event.ID.hex, event.Chief.Activist.ID.hex))
-        for act in event.Activists:
+            if event.IsCancelled and isinstance(event, CancelledEvent):
+                cur.execute("""
+                    INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
+                """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
+            elif event.IsCompleted and isinstance(event, CompletedEvent):
+                cur.execute("""
+                    INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
+                """, (event.ID.hex, event.CompletedBy.hex, event.CompletedAt))
+
+            # Inserting activists
             cur.execute("""
-                INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, false)
-            """, (event.ID.hex, act.Activist.ID.hex))
-        self.conn.commit()
+                INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, true)
+            """, (event.ID.hex, event.Chief.Activist.ID.hex))
+            for act in event.Activists:
+                cur.execute("""
+                    INSERT INTO event_member (id, event_id, activist_id, is_chief) VALUES (gen_random_uuid(), %s, %s, false)
+                """, (event.ID.hex, act.Activist.ID.hex))
+            
+            self.conn.commit()
+        except psycopg2.Error:
+            self.conn.rollback()
+            raise
         cur.close()
 
     def GetValidActivists(self) -> list[Activist]:
         cur = self.conn.cursor()
 
         cur.execute("""
-            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE valid = true;
+            SELECT activist.id, chat_id, acname, valid 
+            FROM activist JOIN tg_user 
+            ON tg_user.id = activist.tg_user_id 
+            WHERE valid = true;
         """)
 
         rows = cur.fetchall()
@@ -174,10 +185,52 @@ class PgRedisStorage(BaseStorage):
             acts.append(Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3]))
         return acts
 
+    def GetValidTgUserActivists(self) -> list[TgUserActivist]:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
+            FROM tg_user tu
+            JOIN activist ac
+            ON tu.id = ac.tg_user_id
+            WHERE ac.valid = true;
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        acts = []
+        for row in rows:
+            acts.append(TgUserActivist(IDTgUser=row[0], IDActivist=row[1], 
+                                       ChatID=row[2], Username=row[3],
+                                       Name=row[4], Valid=row[5], Agreed=row[6]))
+        return acts
+
+    def GetValidTgUserActivistByUsername(self, username : str) -> TgUserActivist:
+        # Возвращается только 1 потому что при добавлении активиста через бота идет проверка,
+        # что Username (или никнейм) уникальный (Как и должно быть в бд)
+        cur = self.conn.cursor()
+        cur.execute(f"""
+            SELECT tu.id, ac.id, tu.chat_id, tu.tg_username, ac.acname, ac.valid, tu.agreed
+            FROM tg_user tu
+            JOIN activist ac
+            ON tu.id = ac.tg_user_id
+            WHERE tu.tg_username = '{username}'
+            AND ac.valid = true
+        """)
+        row = cur.fetchone()
+        cur.close()
+        act = None
+        if row:
+            act = TgUserActivist(IDTgUser=row[0], IDActivist=row[1], 
+                                       ChatID=row[2], Username=row[3],
+                                       Name=row[4], Valid=row[5], Agreed=row[6])
+        return act
+
     def GetActivistByName(self, name : str) -> Activist:
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT activist.id, chat_id, acname, valid FROM activist JOIN tg_user ON tg_user.id = activist.tg_user_id WHERE acname = %s AND valid = true;
+            SELECT activist.id, chat_id, acname, valid 
+            FROM activist JOIN tg_user 
+            ON tg_user.id = activist.tg_user_id 
+            WHERE acname = %s AND valid = true;
         """, (name,))
         row = cur.fetchone()
         cur.close()
@@ -187,7 +240,6 @@ class PgRedisStorage(BaseStorage):
             return act
         return None
 
-    
     def GetActiveEvents(self) -> list[Event]:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
 
@@ -227,6 +279,7 @@ class PgRedisStorage(BaseStorage):
             )
             events.append(event)
         return events
+    
     def getEventChief(self, eventID) -> EventChief:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
 
@@ -266,5 +319,121 @@ class PgRedisStorage(BaseStorage):
             acts.append(EventActivist(ID=row['eid'], EventID=eventID, Activist=act))
         return acts
 
+    def GetTgUser(self, chatID : int):
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT id, chat_id, tg_username, agreed FROM tg_user WHERE chat_id = %s;
+        """, (chatID,))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            tguser = TgUser(ID=row[0], ChatID=row[1], Username=row[2], Agreed=row[3])
+            return tguser
+        return None
+    
+    def GetTgUserByUName(self, username : str):
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT id, chat_id, tg_username, agreed 
+            FROM tg_user 
+            WHERE tg_username = %s;
+        """, (username,))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            tguser = TgUser(ID=row[0], ChatID=row[1], Username=row[2], Agreed=row[3])
+            return tguser
+        return None
 
+    def GetActivistByTgUserID(self, tg_user_id : UUID):
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT activist.id, chat_id, acname, valid
+            FROM activist
+            JOIN tg_user
+            ON tg_user.id = activist.tg_user_id
+            WHERE tg_user_id =  %s
+        """, (tg_user_id.hex, ))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            return Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
+        return None
 
+    def PutActivist(self, tg_user_id : UUID, acname : str):
+        cur = self.conn.cursor()
+        cur.execute("""
+            INSERT INTO activist (id, tg_user_id, acname, valid) 
+            values (gen_random_uuid(), %s, %s, True)
+        """, (tg_user_id.hex, acname))
+
+        self.conn.commit()
+        cur.close()
+
+    def UpdateValidActivist(self, id_act : UUID, funcUpdate):
+        cur = self.conn.cursor()
+        cur.execute(f"""
+            SELECT ac.id, tu.chat_id, ac.acname, ac.valid
+            FROM tg_user tu
+            JOIN activist ac
+            ON tu.id = ac.tg_user_id
+            WHERE ac.id = '{id_act.hex}'
+        """)
+        row = cur.fetchone()
+        act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
+        newAct = funcUpdate(act)
+        cur.execute(f"""
+            update activist
+            set acname = '{newAct.Name}', valid = {newAct.Valid}
+            where id = '{id_act}'
+        """)
+        self.conn.commit()
+        cur.close()
+    
+    def GetEventsByActivistID(self, ActivistID: UUID) -> list[EventForActivist]:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT e.id AS event_id, e.evname, e.evdate, e.photo_amount, e.video_amount
+            FROM event_member em
+            JOIN event e ON em.event_id = e.id
+            WHERE em.activist_id = %s
+        """, (ActivistID.hex,))
+        
+        events = []
+        for row in cur.fetchall():
+            event_id = row[0]
+            chief = self.GetTgUserActivistByActivistID(self.getEventChief(UUID(hex=event_id)).Activist.ID)
+            event = EventForActivist( 
+                ID = UUID(hex=event_id),
+                Name = row[1],  
+                Date = row[2], 
+                Chief = chief, 
+                PhotoCount = row[3],
+                VideoCount = row[4]
+            )
+            events.append(event)
+
+        cur.close()
+        return events
+
+    def GetTgUserActivistByActivistID(self, ActivistID: UUID) -> TgUserActivist:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT a.tg_user_id, a.acname, a.valid, t.chat_id, t.tg_username, t.agreed
+            FROM activist a
+            JOIN tg_user t ON a.tg_user_id = t.id
+            WHERE a.id = %s
+        """, (ActivistID.hex,))
+        result = cur.fetchone()
+
+        TgUserAct = TgUserActivist(
+            IDTgUser = UUID(hex=result[0]),
+            IDActivist = ActivistID,
+            ChatID = result[3],
+            Username = result[4],
+            Name = result[1],
+            Valid = result[2],
+            Agreed = result[5]
+        )
+        return TgUserAct
+    
