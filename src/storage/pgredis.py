@@ -4,7 +4,7 @@ from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief
 from models.telegram import TelegramUserAgreement
-from models.event import CancelledEvent, CompletedEvent
+from models.event import CanceledEvent, CompletedEvent
 from uuid import UUID
 from datetime import datetime
 from psycopg2.extras import RealDictCursor
@@ -146,8 +146,8 @@ class PgRedisStorage(BaseStorage):
 
             if event.IsCancelled and isinstance(event, CancelledEvent):
                 cur.execute("""
-                    INSERT INTO cancelled_event (event_id, cancelled_by, cancelled_at) VALUES (%s, %s, %s)
-                """, (event.ID.hex, event.CancelledBy.hex, event.CancelledAt))
+                    INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
+                """, (event.ID.hex, event.CancelledBY.hex, event.CanceledAt))
             elif event.IsCompleted and isinstance(event, CompletedEvent):
                 cur.execute("""
                     INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
@@ -243,7 +243,7 @@ class PgRedisStorage(BaseStorage):
     def CancelEvent(self, event_id: UUID, cancelled_by: UUID):
         cur = self.conn.cursor()
         cur.execute("""
-            INSERT INTO cancelled_event (event_id, cancelled_by, cancelled_at)
+            INSERT INTO canceled_event (event_id, canceled_by, canceled_at)
             VALUES (%s, %s, %s)
         """, (event_id.hex, cancelled_by.hex, datetime.now()))
         self.conn.commit()
@@ -271,7 +271,7 @@ class PgRedisStorage(BaseStorage):
                 WHERE event_id = event.id
             ) AND NOT EXISTS (
                 SELECT *
-                FROM cancelled_event
+                FROM canceled_event
                 WHERE event_id = event.id
             )
         """)
@@ -311,7 +311,7 @@ class PgRedisStorage(BaseStorage):
             )
             AND NOT EXISTS (
                 SELECT * 
-                FROM cancelled_event 
+                FROM canceled_event 
                 WHERE event_id = event.id
             )
         """, (name,))
