@@ -4,8 +4,9 @@ from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief
 from models.telegram import TelegramUserAgreement
-from models.event import CanceledEvent, CompletedEvent
+from models.event import CancelledEvent, CompletedEvent
 from uuid import UUID
+from datetime import datetime
 from psycopg2.extras import RealDictCursor
 import psycopg2
 import redis
@@ -143,10 +144,10 @@ class PgRedisStorage(BaseStorage):
                 INSERT INTO event (id, evname, evdate, place, photo_amount, video_amount, created_by, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
             """, (event.ID.hex, event.Name, event.Date, event.Place, event.PhotoCount, event.VideoCount, event.CreatedBy.hex, event.CreatedAt))
 
-            if event.IsCancelled and isinstance(event, CanceledEvent):
+            if event.IsCancelled and isinstance(event, CancelledEvent):
                 cur.execute("""
-                    INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
-                """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
+                    INSERT INTO cancelled_event (event_id, cancelled_by, cancelled_at) VALUES (%s, %s, %s)
+                """, (event.ID.hex, event.CancelledBy.hex, event.CancelledAt))
             elif event.IsCompleted and isinstance(event, CompletedEvent):
                 cur.execute("""
                     INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
@@ -239,17 +240,15 @@ class PgRedisStorage(BaseStorage):
             act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
             return act
         return None
-    def CancelEvent(self, event_id: UUID, canceled_by: UUID):
-        from datetime import datetime
+    def CancelEvent(self, event_id: UUID, cancelled_by: UUID):
         cur = self.conn.cursor()
         cur.execute("""
-            INSERT INTO canceled_event (event_id, canceled_by, canceled_at)
+            INSERT INTO cancelled_event (event_id, cancelled_by, cancelled_at)
             VALUES (%s, %s, %s)
-        """, (event_id.hex, canceled_by.hex, datetime.now()))
+        """, (event_id.hex, cancelled_by.hex, datetime.now()))
         self.conn.commit()
         cur.close()
     def CompleteEvent(self, event_id: UUID, completed_by: UUID):
-        from datetime import datetime
         cur = self.conn.cursor()
         cur.execute("""
             INSERT INTO completed_event (event_id, completed_by, completed_at)
@@ -272,7 +271,7 @@ class PgRedisStorage(BaseStorage):
                 WHERE event_id = event.id
             ) AND NOT EXISTS (
                 SELECT *
-                FROM canceled_event
+                FROM cancelled_event
                 WHERE event_id = event.id
             )
         """)
@@ -298,6 +297,46 @@ class PgRedisStorage(BaseStorage):
             )
             events.append(event)
         return events
+    
+    def GetActiveEventByName(self, name: str) -> Event:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("""
+            SELECT id, evname, evdate, place, photo_amount, video_amount, created_by, created_at
+            FROM event
+            WHERE evname = %s
+            AND NOT EXISTS (
+                SELECT * 
+                FROM completed_event 
+                WHERE event_id = event.id
+            )
+            AND NOT EXISTS (
+                SELECT * 
+                FROM cancelled_event 
+                WHERE event_id = event.id
+            )
+        """, (name,))
+
+        row = cur.fetchone()
+        cur.close()
+        if row:     
+            eventID = UUID(hex=row['id'])
+            chief = self.getEventChief(eventID)
+            activists = self.getEventMembers(eventID)
+        
+            return Event(
+                ID=eventID,
+                Name=row['evname'],
+                Date=row['evdate'],
+                Place=row['place'],
+                PhotoCount=row['photo_amount'],
+                VideoCount=row['video_amount'],
+                Chief=chief,
+                Activists=activists,
+                CreatedAt=row['created_at'],
+                CreatedBy=UUID(hex=row['created_by']),
+            )
+        return None
+   
     
     def getEventChief(self, eventID) -> EventChief:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)

@@ -82,13 +82,13 @@ CREATE TABLE IF NOT EXISTS report (
   CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL)
 );
 
-CREATE TABLE canceled_event (
+CREATE TABLE cancelled_event (
   event_id UUID PRIMARY KEY,
-  canceled_by UUID,
-  canceled_at TIMESTAMP,
-  CONSTRAINT canceled_by_notnull CHECK (canceled_by IS NOT NULL),
-  CONSTRAINT canceled_at_notnull CHECK (canceled_at IS NOT NULL),
-  CONSTRAINT canceled_by_fkey FOREIGN KEY (canceled_by) REFERENCES activist (id)
+  cancelled_by UUID,
+  cancelled_at TIMESTAMP,
+  CONSTRAINT cancelled_by_notnull CHECK (cancelled_by IS NOT NULL),
+  CONSTRAINT cancelled_at_notnull CHECK (cancelled_at IS NOT NULL),
+  CONSTRAINT cancelled_by_fkey FOREIGN KEY (cancelled_by) REFERENCES activist (id)
 );
 
 CREATE TABLE completed_event (

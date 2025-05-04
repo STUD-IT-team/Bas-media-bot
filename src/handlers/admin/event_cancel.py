@@ -1,7 +1,6 @@
 from aiogram import F, Router
 from aiogram.types import  Message
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import StateFilter
 from storage.storage import BaseStorage
 from logging import Logger
 
@@ -19,8 +18,9 @@ async def CancelOperationHandle(message: Message, storage: BaseStorage, state: F
     await message.answer("Операция отменена.", reply_markup=AdminDefaultKeyboard.Create())
     await TransitToAdminDefault(message, state, admin)
 
+
 @EventCancelRouter.message(
-    StateFilter("AdminCancellingEvent"),
+    AdminStates.AdminCancellingEvent,
     F.text == "Отмена операции"
 )
 async def CancelEventOperation(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
@@ -34,24 +34,16 @@ async def CancelEventOperation(message: Message, storage: BaseStorage, state: FS
 async def AdminCancelEvent(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
 
     events = storage.GetActiveEvents()
-    
- 
     if not events:
         await message.answer("Нет активных мероприятий для отмены.", reply_markup=AdminDefaultKeyboard.Create())
         await TransitToAdminDefault(message, state, admin = storage.GetAdminByChatID(message.chat.id))
         return
 
- 
-  
-    
- 
-    await state.set_state("AdminCancellingEvent")
-
+    await state.set_state(AdminStates.AdminCancellingEvent)
     await message.answer("Выберите мероприятие для отмены:", reply_markup=ActiveEventsKeyboard(events).Create())
 
 
-
-@EventCancelRouter.message(StateFilter("AdminCancellingEvent"))
+@EventCancelRouter.message(AdminStates.AdminCancellingEvent)
 async def AdminCancelEventChoice(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
 
     admin = storage.GetAdminByChatID(message.chat.id)
@@ -59,13 +51,8 @@ async def AdminCancelEventChoice(message: Message, storage: BaseStorage, state: 
         await message.answer("Администратор не найден.", reply_markup=AdminDefaultKeyboard.Create())
         return
     
-
+    selected_event = storage.GetActiveEventByName(message.text)
    
-    events = storage.GetActiveEvents()
-   
-    selected_event = next((event for event in events if event.Name == message.text), None)
-   
-
     if not selected_event:
         await message.answer("Мероприятие не найдено.", reply_markup=AdminDefaultKeyboard.Create())
         await TransitToAdminDefault(message, state, admin)
