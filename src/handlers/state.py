@@ -3,7 +3,7 @@ from aiogram.fsm.state import StatesGroup, State
 class MemberStates(StatesGroup):
     Default = State()
     
-class MemberAddingReportStates(StatesGroup):
+class MemberReportAddingStates(StatesGroup):
     Choosing = State()
     ChoosingType = State()
     EnteringLink = State()
