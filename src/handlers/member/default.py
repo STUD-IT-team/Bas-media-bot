@@ -1,15 +1,24 @@
 from handlers.state import MemberStates
+from handlers.member.list_of_events import getListOfEvents
 
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from storage.storage import BaseStorage
 from logging import Logger
-
+from aiogram import F
 from keyboards.default.member import MemberDefaultKeyboard
 
 
 MemberDefaultRouter = Router()
+
+@MemberDefaultRouter.message(
+    MemberStates.Default,
+    F.text == MemberDefaultKeyboard.EventInfoButtonText,
+)
+async def ActivistEventsInfo(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
+    await getListOfEvents(message, state, storage)
+
 
 @MemberDefaultRouter.message(MemberStates.Default)
 async def MemberUnknown(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
