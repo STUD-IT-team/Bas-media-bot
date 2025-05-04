@@ -10,6 +10,8 @@ class MemberReportAddingStates(StatesGroup):
 
 class AdminStates(StatesGroup):
     Default = State()
+    AdminCancellingEvent=State()
+    AdminCompletingEvent=State()
 
 class AdminEventCreatingStates(StatesGroup):
     EnteringName = State()
