@@ -13,7 +13,8 @@ class StorageMiddleware(BaseMiddleware):
         self.storageClass = storageClass
         self.kwargs = kwargs
         self.args = args
-    
+
+
     async def __call__(
         self,
         handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],

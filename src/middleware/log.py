@@ -4,7 +4,6 @@ from collections.abc import Callable, Awaitable
 from aiogram.types import Update, Message
 from typing import Dict, Any
 from logging import Logger
-
 import traceback
 
 class LogMiddleware(BaseMiddleware):
@@ -29,4 +28,3 @@ class LogMiddleware(BaseMiddleware):
             self.logger.error(f"LogMiddleware: Error: {e}\nTraceback:\n{''.join(traceback.format_tb(e.__traceback__))}\nEnd of traceback")
         self.logger.info(f"Processed {event.message.chat.id}:{event.message.chat.username}. Text: {event.message.text}")
         return result
-

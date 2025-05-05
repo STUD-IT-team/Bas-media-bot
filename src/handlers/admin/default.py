@@ -13,8 +13,6 @@ from aiogram.fsm.context import FSMContext
 from storage.storage import BaseStorage
 from logging import Logger
 
-
-
 AdminDefaultRouter = Router()
 
 
@@ -24,7 +22,6 @@ AdminDefaultRouter = Router()
 )
 async def AdminAddEvent(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await TransitToAdminCreatingEvent(message, state)
-
 
 
 @AdminDefaultRouter.message(
@@ -42,12 +39,14 @@ async def AdminInfoEvent(message : Message, storage : BaseStorage, state : FSMCo
 async def AdminAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await TransitToAdminNewMember(message, storage, state, logger)
 
+
 @AdminDefaultRouter.message(
     AdminStates.Default,
     F.text == AdminDefaultKeyboard.DeleteMemberButtonText,
 )
 async def AdminDelMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await TransitToAdminDelMember(message, storage, state, logger)
+
 
 @AdminDefaultRouter.message(
     AdminStates.Default,
