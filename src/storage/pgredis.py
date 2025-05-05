@@ -3,7 +3,7 @@ from pydantic_core import from_json
 from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief, EventForActivist
-from models.notification import MapperNotification, BaseNotification
+from models.notification import MapperNotification, BaseNotification, BaseNotifWithEvent
 from models.telegram import TelegramUserAgreement
 from models.event import CanceledEvent, CompletedEvent
 from uuid import UUID
@@ -241,6 +241,7 @@ class PgRedisStorage(BaseStorage):
             act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
             return act
         return None
+    
     def CancelEvent(self, event_id: UUID, cancelled_by: UUID):
         cur = self.conn.cursor()
         cur.execute("""
@@ -249,6 +250,7 @@ class PgRedisStorage(BaseStorage):
         """, (event_id.hex, cancelled_by.hex, datetime.now()))
         self.conn.commit()
         cur.close()
+        
     def CompleteEvent(self, event_id: UUID, completed_by: UUID):
         cur = self.conn.cursor()
         cur.execute("""
@@ -504,7 +506,7 @@ class PgRedisStorage(BaseStorage):
             chatIDs = getChatIDs(r['notif_id'])
             
             notifClass = MapperNotification.GetClassByType(r['type_notif'])
-            if notifClass.RelatedToEvent():
+            if issubclass(notifClass, BaseNotifWithEvent):  #  isinstance(notif, BaseNotifWithEvent):
                 if r['event_id'] is None:
                     raise Exception("notification related to event hasn't got eventID")
                 eventID = UUID(hex=r['event_id'])
@@ -536,7 +538,7 @@ class PgRedisStorage(BaseStorage):
             """, (notif.ID.hex, tgUser.ID.hex))
 
         # добавляем связь с событием
-        if notif.RelatedToEvent():
+        if isinstance(notif, BaseNotifWithEvent):
             cur.execute("""
                 INSERT INTO notif_event (notif_id, event_id)
                 VALUES (%s, %s)
@@ -545,14 +547,13 @@ class PgRedisStorage(BaseStorage):
         self.conn.commit()
         cur.close()
 
-    def SetDoneNotifications(self, notifIDs: list[UUID]):
+    def SetDoneNotification(self, notifID: UUID):
         cur = self.conn.cursor()
-        for n_id in notifIDs:
-            cur.execute(f"""
-                UPDATE notifications
-                SET done = TRUE
-                WHERE id = '{n_id}';
-            """)
+        cur.execute(f"""
+            UPDATE notifications
+            SET done = TRUE
+            WHERE id = '{notifID}';
+        """)
         self.conn.commit()
         cur.close()
 

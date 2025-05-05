@@ -30,7 +30,6 @@ class NotifRegistryBase(type):
     def GetClassByName(cls, name):
         return cls.NOTIF_REGISTRY[name.lower()]
 
-"""Маппер для БД"""
 class MapperNotification:
     __mapClsNmType = {
         'EventReminderNotif': TypeNotif.EVENT_REMINDER,
@@ -42,7 +41,7 @@ class MapperNotification:
     __mapTypeClsNm = {v: k for k, v in __mapClsNmType.items()}
 
     @classmethod
-    def GetClassNameByType(cls, type: str) -> str:
+    def GetClassNameByType(cls, type: TypeNotif) -> str:
         return cls.__mapTypeClsNm[type]
     
     @classmethod
@@ -50,12 +49,12 @@ class MapperNotification:
         return cls.__mapClsNmType[clsName]
 
     @classmethod
-    def GetClassByType(cls, type: str) -> BaseNotification:
+    def GetClassByType(cls, type: TypeNotif) -> BaseNotification:
         notifClassName = cls.GetClassNameByType(type)
         return NotifRegistryBase.GetClassByName(notifClassName)
     
     @classmethod
-    def CreateNotification(cls, type: str, *args) -> BaseNotification:
+    def CreateNotification(cls, type: TypeNotif, *args) -> BaseNotification:
         notifClassName = cls.GetClassNameByType(type)
         notifClass = NotifRegistryBase.GetClassByName(notifClassName)
         return notifClass(*args)
@@ -72,10 +71,6 @@ class BaseNotification(metaclass=NotifRegistryBase):
         """Возвращает текст сообщения (возможно сгенерированного по шаблону)"""
         raise NotImplementedError
     
-    @classmethod
-    def RelatedToEvent(self) -> bool:
-        raise NotImplementedError
-    
     def GetEventID(self) -> UUID:
         raise NotImplementedError
     
@@ -84,10 +79,6 @@ class BaseNotification(metaclass=NotifRegistryBase):
     
 
 class BaseNotifWithEvent(BaseNotification):
-    @classmethod
-    def RelatedToEvent(self) -> bool:
-        return True
-    
     def GetEventID(self) -> UUID:
         return self.Event.ID
 
@@ -137,10 +128,6 @@ class InfoNotif(BaseNotification):
 
     def GetMessageText(self) -> str:
         return self.Text
-    
-    @classmethod
-    def RelatedToEvent(self) -> bool:
-        return False
     
     def GetEventID(self) -> UUID:
         return None

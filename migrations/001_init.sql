@@ -88,7 +88,7 @@ CREATE TABLE canceled_event (
   canceled_at TIMESTAMP,
   CONSTRAINT canceled_by_notnull CHECK (canceled_by IS NOT NULL),
   CONSTRAINT canceled_at_notnull CHECK (canceled_at IS NOT NULL),
-  CONSTRAINT canceled_by_fkey FOREIGN KEY (canceled_by) REFERENCES activist (id)
+  CONSTRAINT canceled_by_fkey FOREIGN KEY (canceled_by) REFERENCES tg_admin (id)-- activist (id)
 );
 
 CREATE TABLE completed_event (
@@ -97,7 +97,7 @@ CREATE TABLE completed_event (
   completed_at TIMESTAMP,
   CONSTRAINT completed_by_notnull CHECK (completed_by IS NOT NULL),
   CONSTRAINT completed_at_notnull CHECK (completed_at IS NOT NULL),
-  CONSTRAINT completed_by_fkey FOREIGN KEY (completed_by) REFERENCES activist (id)
+  CONSTRAINT completed_by_fkey FOREIGN KEY (completed_by) REFERENCES tg_admin (id)
 );
 
 CREATE TYPE NOTIF_TYPE AS ENUM ('event_reminder', 'info', 'assignment', 'event_remove');

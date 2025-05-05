@@ -224,7 +224,6 @@ async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSM
                     datetime.now() + timedelta(days=cntDays),
                     chatIDs,
                     event)
-                print(f"ADD - {n}")
                 await notifServ.AddNotification(n)
         n = MapperNotification.CreateNotification(
             TypeNotif.ASSIGNMENT, 
@@ -233,7 +232,6 @@ async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSM
             datetime.now(),
             chatIDs,
             event)
-        # logger.info(f"ADD - {n}")
         await notifServ.AddNotification(n)
     except BaseException as e:
         logger.error(f"Error occurred while creating notification: {str(e)}")

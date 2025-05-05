@@ -1,7 +1,6 @@
 import uuid
 from aiogram import Bot
 from typing import List, Dict, Optional
-from collections.abc import Callable
 from datetime import datetime
 
 from storage.storage import BaseStorage
@@ -76,7 +75,7 @@ def create_test_event():
 
 class NotificationService:
     def __init__(self, bot: Optional[Bot]):
-        self.notifScheduler = NotificationScheduler(bot)
+        self.notifScheduler = NotificationScheduler(bot, self.SetDoneNotifications)
         self.storage = None
 
     async def AddStorage(self, storage: Optional[BaseStorage]):
@@ -84,11 +83,16 @@ class NotificationService:
         notifications = storage.GetAllNotDoneNotifs()
         i = 1
         # for _ in range(4):
+        # n = notifications[0]
+        # n.ChatIDs = [937944297]
+        # n.NotifyTime = datetime.now().replace(day=datetime.now().day - 1)
+        # await self.notifScheduler.AddNotification(n)
         for n in notifications:
             n.Text = n.Text + f'\n{i}'
             i += 1
             n.ChatIDs = [937944297]
             n.NotifyTime = datetime.now().replace(day=datetime.now().day + 1)
+            n.Text = "--------------------------"
             await self.notifScheduler.AddNotification(n)
 
 
@@ -118,18 +122,20 @@ class NotificationService:
     
     async def AddNotification(self, notif: BaseNotification):
         await self.notifScheduler.AddNotification(notif)
-        if not self.storage is None:
+        if self.storage is not None:
             self.storage.PutNotification(notif)
-            # на каждое добавление уведо дополнительно повешено установление Done уведо
-            doneNotifIDs = await self.notifScheduler.PopDoneNotifications()
-            self.storage.SetDoneNotifications(doneNotifIDs)
 
     async def RemoveNotifications(self, filter: BaseFilterNotif):
-        await self.notifScheduler.RemoveNotifications(filter)
-        if not self.storage is None:
-            removed = self.storage.RemoveNotification(filter)
+        if self.storage is not None:
+            removed = await self.notifScheduler.RemoveNotifications(filter)
             for n in removed:
                 self.storage.RemoveNotification(n.ID)
+
+    async def SetDoneNotifications(self, notifID: UUID):
+        print("SetDoneNotifications\n")
+        if self.storage is not None:
+            print(f"SET_DONE - {notifID}\n")
+            self.storage.SetDoneNotification(notifID)
 
     async def StartScheduler(self):
         await self.notifScheduler.Start()
