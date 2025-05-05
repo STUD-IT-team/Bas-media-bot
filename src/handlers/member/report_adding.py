@@ -13,5 +13,12 @@ MemberReportAddingRouter = Router()
 
 async def TransitToMemberReportAdding(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await state.set_state(MemberReportAddingStates.ChoosingEvent)
-    activeEvents = storage.GetActiveEvents()
+    activeEvents = storage.GetActiveEvents() # Добавить try except
     await message.answer("По какому мероприятию?", reply_markup=ActiveEventsKeyboard(activeEvents).Create())
+
+@MemberReportAddingRouter.message(
+    MemberReportAddingStates(),
+    F.text == ActiveEventsKeyboard.CancelOperationButtonText
+)
+async def MemberCancelReportAdding(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
+    await TransitToMemberDefault(message, state, activist) # Активиста тонет
