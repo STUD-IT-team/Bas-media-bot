@@ -147,7 +147,7 @@ class PgRedisStorage(BaseStorage):
             if event.IsCancelled and isinstance(event, CancelledEvent):
                 cur.execute("""
                     INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
-                """, (event.ID.hex, event.CancelledBY.hex, event.CanceledAt))
+                """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
             elif event.IsCompleted and isinstance(event, CompletedEvent):
                 cur.execute("""
                     INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)

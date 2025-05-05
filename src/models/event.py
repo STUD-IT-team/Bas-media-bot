@@ -30,7 +30,7 @@ class Event(BaseModel):
 class CanceledEvent(Event):
     IsCancelled : bool = True
     CanceledAt : datetime
-    CanceledBY : UUID
+    CanceledBy : UUID
 
 class CompletedEvent(Event):
     IsCompleted : bool = True
