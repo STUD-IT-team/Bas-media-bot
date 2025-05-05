@@ -4,9 +4,10 @@ class MemberStates(StatesGroup):
     Default = State()
     
 class MemberReportAddingStates(StatesGroup):
-    Choosing = State()
+    ChoosingEvent = State()
     ChoosingType = State()
     EnteringLink = State()
+    Confirmation = State()
 
 class AdminStates(StatesGroup):
     Default = State()
