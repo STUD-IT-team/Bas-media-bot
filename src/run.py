@@ -15,6 +15,8 @@ from aiogram.enums import ParseMode
 from handlers.unknown import UnknownRouter
 from handlers.admin.default import AdminDefaultRouter
 from handlers.admin.event_creation import AdminEventCreatingRouter
+from handlers.admin.event_cancel import EventCancelRouter
+from handlers.admin.event_complete import EventCompleteRouter
 from handlers.admin.add_activist import AdminNewMemberRouter
 from handlers.admin.del_activist import AdminDelMemberRouter
 from handlers.admin.add_notification import AdminAddNotificationRouter
@@ -79,6 +81,8 @@ if __name__ == "__main__":
     dp.include_router(AdminNewMemberRouter)
     dp.include_router(AdminDelMemberRouter)
     dp.include_router(AdminEventCreatingRouter)
+    dp.include_router(EventCancelRouter)
+    dp.include_router(EventCompleteRouter)
     dp.include_router(AdminDefaultRouter)
     dp.include_router(MemberDefaultRouter)
     dp.include_router(UnknownRouter)

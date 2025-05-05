@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
-from models.activist import Activist
+from models.activist import Activist, TgUserActivist
 
 class EventChief(BaseModel):
     ID : UUID
@@ -37,3 +37,10 @@ class CompletedEvent(Event):
     CompletedAt : datetime
     CompletedBy : UUID
 
+class EventForActivist(BaseModel):
+    ID: UUID
+    Name: str
+    Date : datetime
+    Chief: TgUserActivist
+    PhotoCount : int
+    VideoCount : int

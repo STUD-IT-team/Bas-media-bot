@@ -2,15 +2,14 @@ from pydantic import BaseModel
 from pydantic_core import from_json
 from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
-from models.event import Event, EventActivist, EventChief
-from models.notification import MapperNotification, \
-    BaseNotification
+from models.event import Event, EventActivist, EventChief, EventForActivist
+from models.notification import MapperNotification, BaseNotification
 from models.telegram import TelegramUserAgreement
+from models.event import CanceledEvent, CompletedEvent
 from uuid import UUID
 from datetime import datetime
 from psycopg2.extras import RealDictCursor
 import psycopg2
-
 import redis
 
 class PostgresCredentials(BaseModel):
@@ -149,7 +148,7 @@ class PgRedisStorage(BaseStorage):
             if event.IsCancelled and isinstance(event, CancelledEvent):
                 cur.execute("""
                     INSERT INTO canceled_event (event_id, canceled_by, canceled_at) VALUES (%s, %s, %s)
-                """, (event.ID.hex, event.CancelledBy.hex, event.CanceledAt))
+                """, (event.ID.hex, event.CancelledBY.hex, event.CanceledAt))
             elif event.IsCompleted and isinstance(event, CompletedEvent):
                 cur.execute("""
                     INSERT INTO completed_event (event_id, completed_by, completed_at) VALUES (%s, %s, %s)
@@ -242,6 +241,23 @@ class PgRedisStorage(BaseStorage):
             act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
             return act
         return None
+    def CancelEvent(self, event_id: UUID, cancelled_by: UUID):
+        cur = self.conn.cursor()
+        cur.execute("""
+            INSERT INTO canceled_event (event_id, canceled_by, canceled_at)
+            VALUES (%s, %s, %s)
+        """, (event_id.hex, cancelled_by.hex, datetime.now()))
+        self.conn.commit()
+        cur.close()
+    def CompleteEvent(self, event_id: UUID, completed_by: UUID):
+        cur = self.conn.cursor()
+        cur.execute("""
+            INSERT INTO completed_event (event_id, completed_by, completed_at)
+            VALUES (%s, %s, %s)
+        """, (event_id.hex, completed_by.hex, datetime.now()))
+        self.conn.commit()
+        cur.close()
+
 
     def GetActiveEvents(self) -> list[Event]:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
@@ -282,6 +298,46 @@ class PgRedisStorage(BaseStorage):
             )
             events.append(event)
         return events
+    
+    def GetActiveEventByName(self, name: str) -> Event:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("""
+            SELECT id, evname, evdate, place, photo_amount, video_amount, created_by, created_at
+            FROM event
+            WHERE evname = %s
+            AND NOT EXISTS (
+                SELECT * 
+                FROM completed_event 
+                WHERE event_id = event.id
+            )
+            AND NOT EXISTS (
+                SELECT * 
+                FROM canceled_event 
+                WHERE event_id = event.id
+            )
+        """, (name,))
+
+        row = cur.fetchone()
+        cur.close()
+        if row:     
+            eventID = UUID(hex=row['id'])
+            chief = self.getEventChief(eventID)
+            activists = self.getEventMembers(eventID)
+        
+            return Event(
+                ID=eventID,
+                Name=row['evname'],
+                Date=row['evdate'],
+                Place=row['place'],
+                PhotoCount=row['photo_amount'],
+                VideoCount=row['video_amount'],
+                Chief=chief,
+                Activists=activists,
+                CreatedAt=row['created_at'],
+                CreatedBy=UUID(hex=row['created_by']),
+            )
+        return None
+   
     
     def getEventChief(self, eventID) -> EventChief:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
@@ -516,3 +572,51 @@ class PgRedisStorage(BaseStorage):
         """)
         self.conn.commit()
         cur.close()
+
+    def GetEventsByActivistID(self, ActivistID: UUID) -> list[EventForActivist]:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT e.id AS event_id, e.evname, e.evdate, e.photo_amount, e.video_amount
+            FROM event_member em
+            JOIN event e ON em.event_id = e.id
+            WHERE em.activist_id = %s
+        """, (ActivistID.hex,))
+        
+        events = []
+        for row in cur.fetchall():
+            event_id = row[0]
+            chief = self.GetTgUserActivistByActivistID(self.getEventChief(UUID(hex=event_id)).Activist.ID)
+            event = EventForActivist( 
+                ID = UUID(hex=event_id),
+                Name = row[1],  
+                Date = row[2], 
+                Chief = chief, 
+                PhotoCount = row[3],
+                VideoCount = row[4]
+            )
+            events.append(event)
+
+        cur.close()
+        return events
+
+    def GetTgUserActivistByActivistID(self, ActivistID: UUID) -> TgUserActivist:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT a.tg_user_id, a.acname, a.valid, t.chat_id, t.tg_username, t.agreed
+            FROM activist a
+            JOIN tg_user t ON a.tg_user_id = t.id
+            WHERE a.id = %s
+        """, (ActivistID.hex,))
+        result = cur.fetchone()
+
+        TgUserAct = TgUserActivist(
+            IDTgUser = UUID(hex=result[0]),
+            IDActivist = ActivistID,
+            ChatID = result[3],
+            Username = result[4],
+            Name = result[1],
+            Valid = result[2],
+            Agreed = result[5]
+        )
+        return TgUserAct
+
