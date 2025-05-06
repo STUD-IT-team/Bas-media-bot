@@ -529,7 +529,6 @@ class PgRedisStorage(BaseStorage):
             VALUES (%s, %s, %s, %s, %s, %s)
         """, (notif.ID.hex, notif.Text, notif.NotifyTime, type_notif, False, datetime.now()))
         
-        # добавляем связь с пользователями
         for chatID in notif.ChatIDs:
             tgUser = self.GetTgUser(chatID)
             cur.execute("""
@@ -537,7 +536,6 @@ class PgRedisStorage(BaseStorage):
                 VALUES (%s, %s)
             """, (notif.ID.hex, tgUser.ID.hex))
 
-        # добавляем связь с событием
         if isinstance(notif, BaseNotifWithEvent):
             cur.execute("""
                 INSERT INTO notif_event (notif_id, event_id)
@@ -574,6 +572,7 @@ class PgRedisStorage(BaseStorage):
         self.conn.commit()
         cur.close()
 
+    """Activist"""
     def GetEventsByActivistID(self, ActivistID: UUID) -> list[EventForActivist]:
         cur = self.conn.cursor()
         cur.execute("""

@@ -108,12 +108,10 @@ CREATE TABLE notifications (
     send_time TIMESTAMP,
     type_notif NOTIF_TYPE,
     done BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP,
-    -- created_by UUID,    
+    created_at TIMESTAMP, 
     CONSTRAINT send_time_notnull CHECK (send_time IS NOT NULL),
     CONSTRAINT done_notnull CHECK (done IS NOT NULL),
     CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL)
-    -- CONSTRAINT created_by_notnull CHECK (created_by IS NOT NULL)
 );
 
 CREATE TABLE notif_event (

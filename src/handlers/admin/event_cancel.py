@@ -75,5 +75,4 @@ async def AdminCancelEventChoice(message: Message, storage: BaseStorage, state: 
         chatIDs,
         selected_event)
     await notifServ.AddNotification(notif)
-    logger.info(f"ADD - {notif}")
     await TransitToAdminDefault(message, state, admin)

@@ -1,4 +1,3 @@
-# from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
 from enum import StrEnum
@@ -90,7 +89,7 @@ class EventReminderNotif(BaseNotifWithEvent):
 
     def GetMessageText(self) -> str:
         msg = f"🔔 Напоминание о событии \"{self.Event.Name}\", " + \
-            f"которое пройдет {self.Event.Date} в {self.Event.Place}\n\n{self.Text}"
+            f"которое пройдет {self.Event.Date} в {self.Event.Place}\n{self.Text}"
         return msg
     
     def __str__(self):
@@ -103,7 +102,7 @@ class AssignmentNotif(BaseNotifWithEvent):
 
     def GetMessageText(self) -> str:
         msg = f"Уведомление о назначении на событие \"{self.Event.Name}\", " + \
-            f"которое пройдет {self.Event.Date} в {self.Event.Place}\n\n{self.Text}"
+            f"которое пройдет {self.Event.Date} в {self.Event.Place}\n{self.Text}"
         return msg
 
     def __str__(self):
@@ -115,7 +114,7 @@ class EventRemoveNotif(BaseNotifWithEvent):
         super().__init__(id, text, notifyTime, ChatIDs)
 
     def GetMessageText(self) -> str:
-        msg = f"Уведомление об отмене мепрориятия \"{self.Event.Name}\" \n\n{self.Text}, "
+        msg = f"Уведомление об отмене мепрориятия \"{self.Event.Name}\" \n{self.Text}"
         return msg
     
     def __str__(self):

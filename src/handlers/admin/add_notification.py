@@ -22,15 +22,13 @@ KEY_NOTIF_CHATIDS = 'NotificationActivistsID'
 KEY_NOTIF_TIME = "NotificationTime"
 KEY_NOTIF_TEXT = "NotificationText"
 
-
 AdminAddNotificationRouter = Router()
 
 async def TransitToAdminAddNotification(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
-    logger.info(f"Transit To Admin Add Notification")
     await state.set_state(AdminAddNotificationStates.EnteringText)
     logger.info(f"STATE = AdminAddNotificationStates.EnteringText")
-    tmptext = "Введите текст уведомления: "
-    await message.answer(tmptext, reply_markup=CancelKeyboard.Create())
+    await message.answer("Введите текст уведомления: ", 
+                         reply_markup=CancelKeyboard.Create())
 
 @AdminAddNotificationRouter.message(
     or_f(
@@ -41,14 +39,12 @@ async def TransitToAdminAddNotification(message : Message, storage : BaseStorage
     F.text == CancelKeyboard.CancelButtonText
 )
 async def AdminCancelAddNotification(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
-    logger.info(f"Admin Cancel Add Notification")
     admin = storage.GetAdminByChatID(message.chat.id)
     await message.answer(f"Уведомление не создано.")
     await TransitToAdminDefault(message=message, state=state, admin=admin)
 
 @AdminAddNotificationRouter.message(AdminAddNotificationStates.EnteringText)
 async def AdminEnteringText(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
-    logger.info(f"Admin Entering Text")
     data = await state.get_data()
     data[KEY_NOTIF_TEXT] = message.text
     await state.update_data(data)
@@ -64,7 +60,6 @@ def GetNotChosenChatIDs(storage : BaseStorage, context : dict[str, any]) -> list
 
 @AdminAddNotificationRouter.message(AdminAddNotificationStates.EnteringTime)
 async def AdminEnteringTime(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
-    logger.info(f"Admin Entering Time")
     timeText = message.text
     if timeText.lower().strip() == "сейчас":
         timeRes = datetime.now()
@@ -92,7 +87,6 @@ async def AdminEnteringTime(message : Message, storage : BaseStorage, state : FS
     F.text == MemberChoosingCancelKeyboard.StopActivistChoosingButtonText
 )
 async def AdminEnteringUsersStop(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
-    logger.info(f"Admin Entering Users Stop")
     data = await state.get_data()
     textNotif = data[KEY_NOTIF_TEXT]
     try:
@@ -123,7 +117,6 @@ async def AdminEnteringUsersStop(message: Message, storage: BaseStorage, state: 
     AdminAddNotificationStates.EnteringUsers
 )
 async def AdminEnteringUsers(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
-    logger.info(f"Admin Entering Users")
     data = await state.get_data()
     activistName = message.text
     act = storage.GetActivistByName(activistName)
@@ -139,13 +132,11 @@ async def AdminEnteringUsers(message: Message, storage: BaseStorage, state: FSMC
             reply_markup=MemberChoosingCancelKeyboard(GetNotChosenChatIDs(storage, data)).Create())
     
 
-
 @AdminAddNotificationRouter.message(
     AdminAddNotificationStates.Confirmation,
     F.text == YesNoKeyboard.YesButtonText
 )
 async def AdminConfirmedNotification(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger, notifServ: NotificationService):
-    logger.info(f"Admin Confirmed Notification")
     data = await state.get_data()
     textNotif = data[KEY_NOTIF_TEXT]
     try:
