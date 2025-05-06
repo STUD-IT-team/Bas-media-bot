@@ -21,7 +21,7 @@ from aiogram import F
 from datetime import datetime, timedelta
 
 from notifications.NotificationService import NotificationService
-from models.notification import MapperNotification, TypeNotif
+from models.notification import EventReminderNotif, AssignmentNotif
 
 AdminEventCreatingRouter = Router()
 
@@ -105,8 +105,6 @@ async def AdminEnterVideoCount(message: Message, storage: BaseStorage, state: FS
         await TransitToAdminDefault(message=message, state=state, admin=admin)
         raise Exception("No valid activists")
 
-    logger.info(f"LEN ACTS ------ {len(acts)}\n\n")
-    logger.info([a.Name for a in acts])
     keyb = MemberChoosingCancelKeyboard(acts)
     await state.update_data(data)
     await state.set_state(AdminEventCreatingStates.ChoosingChief)
@@ -217,21 +215,21 @@ async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSM
     try:
         for cntDays in [1, 3]:
             if event.Date - timedelta(days=cntDays) >= datetime.now():
-                n = MapperNotification.CreateNotification(
-                    TypeNotif.EVENT_REMINDER, 
+                n = EventReminderNotif(
                     uuid4(),
                     "",
                     datetime.now() + timedelta(days=cntDays),
                     chatIDs,
-                    event)
+                    event
+                )
                 await notifServ.AddNotification(n)
-        n = MapperNotification.CreateNotification(
-            TypeNotif.ASSIGNMENT, 
+        n = AssignmentNotif(
             uuid4(),
             "",
             datetime.now(),
             chatIDs,
-            event)
+            event
+        )
         await notifServ.AddNotification(n)
     except BaseException as e:
         logger.error(f"Error occurred while creating notification: {str(e)}")

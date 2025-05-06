@@ -504,16 +504,12 @@ class PgRedisStorage(BaseStorage):
         for r in rows:
             notifID = UUID(hex=r['notif_id'])
             chatIDs = getChatIDs(r['notif_id'])
-            
-            notifClass = MapperNotification.GetClassByType(r['type_notif'])
-            if issubclass(notifClass, BaseNotifWithEvent):  #  isinstance(notif, BaseNotifWithEvent):
-                if r['event_id'] is None:
-                    raise Exception("notification related to event hasn't got eventID")
-                eventID = UUID(hex=r['event_id'])
-                event = self.GetEventByID(eventID)
-                argsCreateNotif = [notifID, r['extra_text'], r['send_time'], chatIDs, event]
-            else:
+            if r['event_id'] is None:
                 argsCreateNotif = [notifID, r['extra_text'], r['send_time'], chatIDs]
+            else:
+                event = self.GetEventByID(UUID(hex=r['event_id']))
+                argsCreateNotif = [notifID, r['extra_text'], r['send_time'], chatIDs, event]
+
             notification = MapperNotification.CreateNotification(r['type_notif'], *argsCreateNotif)
             notifsRes.append(notification)
         cur.close()

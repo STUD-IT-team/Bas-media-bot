@@ -16,7 +16,7 @@ from utils.strings import NewlineJoin, EnumerateStrings
 from utils.date_time import TIME_FORMAT, GetTimeDateFormatDescription, GetTimeDateFormatExample, ParseTimeDate
 from models.activist import Activist
 from notifications.NotificationService import NotificationService
-from models.notification import MapperNotification
+from models.notification import InfoNotif
 
 KEY_NOTIF_CHATIDS = 'NotificationActivistsID'
 KEY_NOTIF_TIME = "NotificationTime"
@@ -146,12 +146,12 @@ async def AdminConfirmedNotification(message: Message, storage: BaseStorage, sta
     chatIDsNotif = data[KEY_NOTIF_CHATIDS]
 
     try:
-        notif = MapperNotification.CreateNotification(
-            'info', 
+        notif = InfoNotif(
             uuid4(),
             textNotif,
             timeNotif, 
-            chatIDsNotif)
+            chatIDsNotif
+        )
         await notifServ.AddNotification(notif)
     except BaseException as e:
         logger.error(f"Error occurred while creating and adding notification: {str(e)}")

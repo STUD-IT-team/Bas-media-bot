@@ -13,9 +13,7 @@ class EventFilter(BaseFilterNotif):
         super().__init__()
 
     def filter(self, notif: BaseNotification) -> bool:
-        if not isinstance(notif, BaseNotifWithEvent):
-            return False
-        return notif.GetEventID() == self.eventID
+        return isinstance(notif, BaseNotifWithEvent) and notif.GetEventID() == self.eventID
     
 class TypeFilter(BaseFilterNotif):
     def __init__(self, type: TypeNotif):

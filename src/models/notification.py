@@ -49,12 +49,12 @@ class MapperNotification:
 
     @classmethod
     def GetClassByType(cls, type: TypeNotif) -> BaseNotification:
-        notifClassName = cls.GetClassNameByType(type)
+        notifClassName = cls.__mapTypeClsNm[type]
         return NotifRegistryBase.GetClassByName(notifClassName)
     
     @classmethod
     def CreateNotification(cls, type: TypeNotif, *args) -> BaseNotification:
-        notifClassName = cls.GetClassNameByType(type)
+        notifClassName = cls.__mapTypeClsNm[type]
         notifClass = NotifRegistryBase.GetClassByName(notifClassName)
         return notifClass(*args)
 

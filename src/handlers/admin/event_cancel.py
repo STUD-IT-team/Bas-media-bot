@@ -10,7 +10,7 @@ from keyboards.default.admin import AdminDefaultKeyboard
 from keyboards.events.activeevents import ActiveEventsKeyboard
 from notifications.NotificationService import NotificationService
 from notifications.NotifFilter import EventFilter
-from models.notification import MapperNotification, TypeNotif
+from models.notification import TypeNotif, EventRemoveNotif
 from uuid import UUID, uuid4
 from datetime import datetime
 
@@ -67,12 +67,12 @@ async def AdminCancelEventChoice(message: Message, storage: BaseStorage, state: 
     
     chatIDs = [act.Activist.ChatID for act in selected_event.Activists] + [selected_event.Chief.Activist.ChatID]
     await notifServ.RemoveNotifications(EventFilter(selected_event.ID))
-    notif = MapperNotification.CreateNotification(
-        TypeNotif.EVENT_REMOVE, 
+    notif = EventRemoveNotif(
         uuid4(),
         "",
         datetime.now(),
         chatIDs,
-        selected_event)
+        selected_event
+    )
     await notifServ.AddNotification(notif)
     await TransitToAdminDefault(message, state, admin)
