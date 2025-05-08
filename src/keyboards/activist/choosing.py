@@ -4,6 +4,7 @@ from keyboards.confirmation.cancel import CancelKeyboard
 from models.activist import Activist, TgUserActivist
 from uuid import UUID
 
+
 class MemberChoosingKeyboard:
     CancelButtonText = "Отмена"
 
@@ -25,6 +26,7 @@ class MemberChoosingKeyboard:
             resize_keyboard=True,
             one_time_keyboard=False
         )
+
 
 class MemberChoosingCancelKeyboard:
     StopActivistChoosingButtonText = 'Закончить выбор активистов'

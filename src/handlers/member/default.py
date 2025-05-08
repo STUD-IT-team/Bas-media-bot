@@ -9,8 +9,8 @@ from logging import Logger
 from aiogram import F
 from keyboards.default.member import MemberDefaultKeyboard
 
-
 MemberDefaultRouter = Router()
+
 
 @MemberDefaultRouter.message(
     MemberStates.Default,

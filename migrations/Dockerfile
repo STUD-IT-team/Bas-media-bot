@@ -1,15 +1,14 @@
 FROM alpine:3.17.0
 
-RUN apk update && \
-    apk upgrade && \
-    apk add bash && \
-    rm -rf /var/cache/apk/*
+WORKDIR /usr/migrations-stuff/
 
-RUN mkdir /migrations
-WORKDIR /migrations
+RUN set -eux \
+    && apk add --no-cache curl \
+    && (curl -fsSL https://raw.githubusercontent.com/pressly/goose/master/install.sh | sh) \
+    && apk del curl \
+    && rm -rf /var/cache/apk/*
 
-COPY . .
-ENTRYPOINT ["/migrations/entrypoint.sh"]
-ADD https://github.com/pressly/goose/releases/download/v3.16.0/goose_linux_x86_64 /bin/goose
-RUN chmod +x /bin/goose
-RUN chmod +x /migrations/entrypoint.sh
+COPY . /usr/migrations-stuff/
+
+RUN chmod +x /usr/migrations-stuff/entrypoint.sh
+ENTRYPOINT ["/usr/migrations-stuff/entrypoint.sh"]

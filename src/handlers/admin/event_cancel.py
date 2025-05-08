@@ -9,9 +9,8 @@ from handlers.state import AdminStates
 from keyboards.default.admin import AdminDefaultKeyboard
 from keyboards.events.activeevents import ActiveEventsKeyboard
 
-
-
 EventCancelRouter = Router()
+
 
 async def CancelOperationHandle(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
     admin = storage.GetAdminByChatID(message.chat.id)

@@ -1,14 +1,20 @@
-FROM python:3.13-alpine
+FROM python:3.13.2-alpine
 
-RUN rm -rf /opt/venv
-RUN python -m venv /opt/venv
-RUN source /opt/venv/bin/activate
+WORKDIR /usr/bot-stuff/
 
-COPY ./src/requirements.txt .
-COPY ./src/ .
+COPY ./requirements.txt /usr/bot-stuff/requirements.txt
 
-RUN pip install -r requirements.txt
+RUN set -eux \
+    && rm -rf /opt/venv \
+    && python -m venv /opt/venv \
+    && source /opt/venv/bin/activate \
+    && pip install --upgrade pip setuptools wheel \
+    && pip install -r /usr/bot-stuff/requirements.txt \
+    && rm -rf /root/.cache/pip
+
+COPY . /usr/bot-stuff/
 
 EXPOSE 3012
 
-CMD ["python3.13", "./run.py"]
+RUN chmod +x /usr/bot-stuff/entrypoint.sh
+ENTRYPOINT ["/usr/bot-stuff/entrypoint.sh"]

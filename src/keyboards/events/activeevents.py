@@ -7,6 +7,7 @@ class ActiveEventsKeyboard:
     def __init__(self, events):
         self.events = events
 
+
     def Create(self):
         buttons = [[KeyboardButton(text=event.Name)] for event in self.events]
         buttons.append([KeyboardButton(text=self.CancelOperationButtonText)])

@@ -8,6 +8,7 @@ from logging import Logger
 from handlers.state import MemberStates, AdminStates
 from handlers.usertransition import TransitToMemberDefault, TransitToAdminDefault, TransitToUnauthorized
 
+
 class UnauthorizedError(Exception):
     def __str__(self):
         return "Unauthorized User"

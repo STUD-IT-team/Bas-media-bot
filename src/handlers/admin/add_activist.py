@@ -20,6 +20,7 @@ async def TransitToAdminNewMember(message : Message, storage : BaseStorage, stat
     tmptext = "Введите никнейм пользователя (в формате @name): "
     await message.answer(tmptext, reply_markup=CancelAddMemberKeyboard.Create())
 
+
 @AdminNewMemberRouter.message(
     AdminNewMemberStates.EnteringTelegramID or AdminNewMemberStates.EnteringName,
     F.text == CancelAddMemberKeyboard.CancelAddMemberButtonText
