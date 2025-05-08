@@ -1,6 +1,6 @@
 from uuid import UUID
 from models.notification import \
-    BaseNotification, MapperNotification, BaseNotifWithEvent, TypeNotif
+    BaseNotification, BaseNotifWithEvent, TypeNotif
 
 
 class BaseFilterNotif:
@@ -21,7 +21,7 @@ class TypeFilter(BaseFilterNotif):
         super().__init__()
 
     def filter(self, notif: BaseNotification) -> bool:
-        return notif.__class__.__name__ == MapperNotification.GetClassNameByType(self.type)
+        return notif.__class__.TYPE == self.type
 
 
 

@@ -14,53 +14,31 @@ class BaseNotification:
     pass
 
 class NotifRegistryBase(type):
-    NOTIF_REGISTRY = {}
+    __NOTIF_REGISTRY = {} # map[TypeNotif] -> class
 
     def __new__(cls, name, bases, atrs):
         new_cls = type.__new__(cls, name, bases, atrs)
-        cls.NOTIF_REGISTRY[new_cls.__name__.lower()] = new_cls
+        if new_cls.TYPE is not None:
+            cls.__NOTIF_REGISTRY[new_cls.TYPE] = new_cls
         return new_cls
-
-    @classmethod
-    def get_notif_registry(cls):
-        return dict(cls.NOTIF_REGISTRY)
     
-    @classmethod
-    def GetClassByName(cls, name):
-        return cls.NOTIF_REGISTRY[name.lower()]
-
-class MapperNotification:
-    __mapClsNmType = {
-        'EventReminderNotif': TypeNotif.EVENT_REMINDER,
-        'InfoNotif': TypeNotif.INFO,
-        'AssignmentNotif': TypeNotif.ASSIGNMENT,
-        'EventRemoveNotif': TypeNotif.EVENT_REMOVE
-        
-    }
-    __mapTypeClsNm = {v: k for k, v in __mapClsNmType.items()}
-
-    @classmethod
-    def GetClassNameByType(cls, type: TypeNotif) -> str:
-        return cls.__mapTypeClsNm[type]
-    
-    @classmethod
-    def GetTypeByClassName(cls, clsName: str) -> str:
-        return cls.__mapClsNmType[clsName]
-
-    @classmethod
-    def GetClassByType(cls, type: TypeNotif) -> BaseNotification:
-        notifClassName = cls.__mapTypeClsNm[type]
-        return NotifRegistryBase.GetClassByName(notifClassName)
-    
-    @classmethod
-    def CreateNotification(cls, type: TypeNotif, *args) -> BaseNotification:
-        notifClassName = cls.__mapTypeClsNm[type]
-        notifClass = NotifRegistryBase.GetClassByName(notifClassName)
-        return notifClass(*args)
+    def Create(type: TypeNotif, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], event: Event):
+        if type not in list(TypeNotif):
+            all_types = list(TypeNotif.__members__.keys())
+            raise Exception(f"Попытка создать класс несуществующего типа. Все типы TypeNotif: {', '.join(all_types)}")
+        return NotifRegistryBase.__NOTIF_REGISTRY[type](
+            id=id,
+            text=text,
+            notifyTime=notifyTime,
+            ChatIDs=ChatIDs,
+            event=event
+        )
 
 
 class BaseNotification(metaclass=NotifRegistryBase):
-    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int]):
+    TYPE = None
+
+    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], **kwargs):
         self.ID = id
         self.Text = text
         self.NotifyTime = notifyTime
@@ -78,14 +56,17 @@ class BaseNotification(metaclass=NotifRegistryBase):
     
 
 class BaseNotifWithEvent(BaseNotification):
+    TYPE = None
     def GetEventID(self) -> UUID:
         return self.Event.ID
 
 
 class EventReminderNotif(BaseNotifWithEvent):
-    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], event: Event):
+    TYPE = TypeNotif.EVENT_REMINDER
+
+    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], event: Event, **kwargs):
         self.Event = event
-        super().__init__(id, text, notifyTime, ChatIDs)
+        super().__init__(id, text, notifyTime, ChatIDs, **kwargs)
 
     def GetMessageText(self) -> str:
         msg = f"🔔 Напоминание о событии \"{self.Event.Name}\", " + \
@@ -96,9 +77,11 @@ class EventReminderNotif(BaseNotifWithEvent):
         return f"EventReminderNotif(id={str(self.ID)[:4]}, text={self.Text[:7]}, chats={self.ChatIDs}, time={self.NotifyTime}, event={self.Event.Name})"
     
 class AssignmentNotif(BaseNotifWithEvent):
-    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], event: Event):
+    TYPE = TypeNotif.ASSIGNMENT
+
+    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], event: Event, **kwargs):
         self.Event = event
-        super().__init__(id, text, notifyTime, ChatIDs)
+        super().__init__(id, text, notifyTime, ChatIDs, **kwargs)
 
     def GetMessageText(self) -> str:
         msg = f"Уведомление о назначении на событие \"{self.Event.Name}\", " + \
@@ -109,9 +92,11 @@ class AssignmentNotif(BaseNotifWithEvent):
         return f"AssignmentNotif(id={str(self.ID)[:4]}, text={self.Text[:7]}, chats={self.ChatIDs}, time={self.NotifyTime}, event={self.Event.Name})"
 
 class EventRemoveNotif(BaseNotifWithEvent):
-    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], event: Event):
+    TYPE = TypeNotif.EVENT_REMOVE
+
+    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], event: Event, **kwargs):
         self.Event = event
-        super().__init__(id, text, notifyTime, ChatIDs)
+        super().__init__(id, text, notifyTime, ChatIDs, **kwargs)
 
     def GetMessageText(self) -> str:
         msg = f"Уведомление об отмене мепрориятия \"{self.Event.Name}\" \n{self.Text}"
@@ -122,8 +107,10 @@ class EventRemoveNotif(BaseNotifWithEvent):
 
 
 class InfoNotif(BaseNotification):
-    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int]):
-        super().__init__(id, text, notifyTime, ChatIDs)
+    TYPE = TypeNotif.INFO
+
+    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], **kwargs):
+        super().__init__(id, text, notifyTime, ChatIDs, **kwargs)
 
     def GetMessageText(self) -> str:
         return self.Text

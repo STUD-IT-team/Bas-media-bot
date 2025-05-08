@@ -3,7 +3,7 @@ from pydantic_core import from_json
 from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief, EventForActivist
-from models.notification import MapperNotification, BaseNotification, BaseNotifWithEvent
+from models.notification import BaseNotification, BaseNotifWithEvent, NotifRegistryBase
 from models.telegram import TelegramUserAgreement
 from models.event import CanceledEvent, CompletedEvent
 from uuid import UUID
@@ -504,20 +504,25 @@ class PgRedisStorage(BaseStorage):
         for r in rows:
             notifID = UUID(hex=r['notif_id'])
             chatIDs = getChatIDs(r['notif_id'])
-            if r['event_id'] is None:
-                argsCreateNotif = [notifID, r['extra_text'], r['send_time'], chatIDs]
-            else:
+            event = None
+            if r['event_id'] is not None:
                 event = self.GetEventByID(UUID(hex=r['event_id']))
-                argsCreateNotif = [notifID, r['extra_text'], r['send_time'], chatIDs, event]
 
-            notification = MapperNotification.CreateNotification(r['type_notif'], *argsCreateNotif)
+            notification = NotifRegistryBase.Create(
+                r['type_notif'],
+                id=notifID,
+                text=r['extra_text'],
+                notifyTime=r['send_time'],
+                ChatIDs=chatIDs,
+                event=event
+            )
             notifsRes.append(notification)
         cur.close()
 
         return notifsRes
 
     def PutNotification(self, notif: BaseNotification):
-        type_notif = MapperNotification.GetTypeByClassName(notif.__class__.__name__)
+        type_notif = notif.TYPE
 
         cur = self.conn.cursor()
         cur.execute("""
