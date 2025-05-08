@@ -7,7 +7,7 @@ services:
         build:
             context: ../
             dockerfile: ./src/Dockerfile
-        restart: always
+        restart: unless-stopped     # always
         ports: 
             - "3012:3012"
         networks:
@@ -28,7 +28,7 @@ services:
             - ../data/db-data:/var/lib/postgresql/data
         ports:
             - "5433:5432"
-        restart: always
+        restart: unless-stopped     # always
         deploy:
             resources:
                 limits:

@@ -40,3 +40,8 @@ class AdminMailingStates(StatesGroup):
     EnteringText = State()
     EnteringDate = State()
     
+class AdminAddNotificationStates(StatesGroup):
+    EnteringText = State()
+    EnteringTime = State()
+    EnteringUsers = State()
+    Confirmation = State()
