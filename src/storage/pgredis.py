@@ -3,6 +3,7 @@ from pydantic_core import from_json
 from storage.storage import BaseStorage
 from models.activist import Activist, Admin, TgUser, TgUserActivist
 from models.event import Event, EventActivist, EventChief, EventForActivist
+from models.notification import BaseNotification, BaseNotifWithEvent, NotifRegistryBase
 from models.telegram import TelegramUserAgreement
 from models.event import CanceledEvent, CompletedEvent
 from uuid import UUID
@@ -107,7 +108,7 @@ class PgRedisStorage(BaseStorage):
             act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
         return act
     
-    def GetActivistByID(self, ID : UUID):
+    def GetActivistByID(self, ID : UUID) -> Activist:
         cur = self.conn.cursor()
         cur.execute("""
             SELECT activist.id, chat_id, acname, valid 
@@ -240,6 +241,7 @@ class PgRedisStorage(BaseStorage):
             act = Activist(ID=row[0], ChatID=row[1], Name=row[2], Valid=row[3])
             return act
         return None
+    
     def CancelEvent(self, event_id: UUID, cancelled_by: UUID):
         cur = self.conn.cursor()
         cur.execute("""
@@ -248,6 +250,7 @@ class PgRedisStorage(BaseStorage):
         """, (event_id.hex, cancelled_by.hex, datetime.now()))
         self.conn.commit()
         cur.close()
+        
     def CompleteEvent(self, event_id: UUID, completed_by: UUID):
         cur = self.conn.cursor()
         cur.execute("""
@@ -447,7 +450,130 @@ class PgRedisStorage(BaseStorage):
         """)
         self.conn.commit()
         cur.close()
-    
+        
+    def GetEventByID(self, id: UUID) -> Event:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(f"""
+            SELECT id, evname, evdate, place, photo_amount, video_amount, created_by, created_at
+            FROM event
+            WHERE id = '{id}'
+        """)
+        row = cur.fetchone()
+        cur.close()
+        eventID = UUID(hex=row['id'])
+        chief = self.getEventChief(eventID)
+        activists = self.getEventMembers(eventID)
+        event = Event(
+            ID = eventID,
+            Name=row['evname'], 
+            Date=row['evdate'], 
+            Place=row['place'],
+            PhotoCount=row['photo_amount'], 
+            VideoCount=row['video_amount'], 
+            Chief=chief, 
+            Activists=activists,
+            CreatedAt=row['created_at'],
+            CreatedBy=UUID(hex=row['created_by']),
+        )
+        return event
+
+    """Notifications"""
+    def GetAllNotDoneNotifs(self) -> list[BaseNotification]:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(f"""
+            SELECT n.id as notif_id, n.extra_text, n.send_time, n.type_notif, ne.event_id as event_id
+            FROM notifications n
+            LEFT JOIN notif_event ne
+            ON ne.notif_id = n.id
+            WHERE n.done = FALSE;
+        """)
+        rows = cur.fetchall()
+
+        def getChatIDs(notif_id: str) -> list[int]:
+            cur.execute(f"""
+                SELECT  chat_id
+                FROM notif_tguser nu
+                JOIN tg_user u
+                ON nu.tguser_id = u.id
+                WHERE nu.notif_id = '{notif_id}'; 
+            """)
+            chatIDs = list(map(lambda x: int(x['chat_id']), cur.fetchall()))
+            return chatIDs
+        
+        notifsRes = []
+        for r in rows:
+            notifID = UUID(hex=r['notif_id'])
+            chatIDs = getChatIDs(r['notif_id'])
+            event = None
+            if r['event_id'] is not None:
+                event = self.GetEventByID(UUID(hex=r['event_id']))
+
+            notification = NotifRegistryBase.Create(
+                r['type_notif'],
+                id=notifID,
+                text=r['extra_text'],
+                notifyTime=r['send_time'],
+                ChatIDs=chatIDs,
+                event=event
+            )
+            notifsRes.append(notification)
+        cur.close()
+
+        return notifsRes
+
+    def PutNotification(self, notif: BaseNotification):
+        type_notif = notif.TYPE
+
+        cur = self.conn.cursor()
+        cur.execute("""
+            INSERT INTO notifications (id, extra_text, send_time, type_notif, done, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (notif.ID.hex, notif.Text, notif.NotifyTime, type_notif, False, datetime.now()))
+        
+        for chatID in notif.ChatIDs:
+            tgUser = self.GetTgUser(chatID)
+            cur.execute("""
+                INSERT INTO notif_tguser (notif_id, tguser_id)
+                VALUES (%s, %s)
+            """, (notif.ID.hex, tgUser.ID.hex))
+
+        if isinstance(notif, BaseNotifWithEvent):
+            cur.execute("""
+                INSERT INTO notif_event (notif_id, event_id)
+                VALUES (%s, %s)
+            """, (notif.ID.hex, notif.GetEventID().hex))
+
+        self.conn.commit()
+        cur.close()
+
+    def SetDoneNotification(self, notifID: UUID):
+        cur = self.conn.cursor()
+        cur.execute(f"""
+            UPDATE notifications
+            SET done = TRUE
+            WHERE id = '{notifID}';
+        """)
+        self.conn.commit()
+        cur.close()
+
+    def RemoveNotification(self, notifID: UUID):
+        cur = self.conn.cursor()
+        cur.execute(f"""
+            DELETE FROM notif_event
+            WHERE notif_id = '{notifID}';
+        """)
+        cur.execute(f"""
+            DELETE FROM notif_tguser
+            WHERE notif_id = '{notifID}';
+        """)
+        cur.execute(f"""
+            DELETE FROM notifications
+            WHERE id = '{notifID}';
+        """)
+        self.conn.commit()
+        cur.close()
+
+    """Activist"""
     def GetEventsByActivistID(self, ActivistID: UUID) -> list[EventForActivist]:
         cur = self.conn.cursor()
         cur.execute("""
@@ -494,4 +620,4 @@ class PgRedisStorage(BaseStorage):
             Agreed = result[5]
         )
         return TgUserAct
-    
+

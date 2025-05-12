@@ -1,4 +1,6 @@
 tmp.sql
+old_tmp_data.sql
+tmp_data.sql
 # MacOS users isn't humans.
 .DS_Store
 

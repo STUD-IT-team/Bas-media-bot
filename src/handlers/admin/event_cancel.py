@@ -8,8 +8,11 @@ from handlers.usertransition import TransitToAdminDefault
 from handlers.state import AdminStates
 from keyboards.default.admin import AdminDefaultKeyboard
 from keyboards.events.activeevents import ActiveEventsKeyboard
-
-
+from notifications.NotificationService import NotificationService
+from notifications.NotifFilter import EventFilter
+from models.notification import TypeNotif, EventRemoveNotif
+from uuid import UUID, uuid4
+from datetime import datetime
 
 EventCancelRouter = Router()
 
@@ -44,7 +47,7 @@ async def AdminCancelEvent(message: Message, storage: BaseStorage, state: FSMCon
 
 
 @EventCancelRouter.message(AdminStates.AdminCancellingEvent)
-async def AdminCancelEventChoice(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
+async def AdminCancelEventChoice(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger, notifServ: NotificationService):
 
     admin = storage.GetAdminByChatID(message.chat.id)
     if not admin:
@@ -61,4 +64,15 @@ async def AdminCancelEventChoice(message: Message, storage: BaseStorage, state: 
     storage.CancelEvent(selected_event.ID, admin.ID)
 
     await message.answer(f"Мероприятие {selected_event.Name} успешно отменено!", reply_markup=AdminDefaultKeyboard.Create())
+    
+    chatIDs = [act.Activist.ChatID for act in selected_event.Activists] + [selected_event.Chief.Activist.ChatID]
+    await notifServ.RemoveNotifications(EventFilter(selected_event.ID))
+    notif = EventRemoveNotif(
+        uuid4(),
+        "",
+        datetime.now(),
+        chatIDs,
+        selected_event
+    )
+    await notifServ.AddNotification(notif)
     await TransitToAdminDefault(message, state, admin)
