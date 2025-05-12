@@ -19,6 +19,7 @@ from handlers.admin.event_cancel import EventCancelRouter
 from handlers.admin.event_complete import EventCompleteRouter
 from handlers.admin.add_activist import AdminNewMemberRouter
 from handlers.admin.del_activist import AdminDelMemberRouter
+from handlers.admin.add_notification import AdminAddNotificationRouter
 from handlers.member.default import MemberDefaultRouter
 
 
@@ -34,6 +35,10 @@ from middleware.log import LogMiddleware
 from middleware.auth import AuthMiddleware
 from middleware.agreement import AgreementMiddleware
 
+# NotificationService
+from notifications.NotificationService import NotificationService
+from middleware.notifications import NotificationsMiddleware
+
 # Logging config options
 LOGGING_KWARGS = {
     "format": "[%(levelname)s, %(asctime)s, %(filename)s] func %(funcName)s, line %(lineno)d: %(message)s;",
@@ -44,7 +49,19 @@ LOGGING_KWARGS = {
 
 
 async def main() -> None:
-    await dp.start_polling(bot)
+    await notifServ.AddStorage(PgRedisStorage(pgcred, redcred))
+    # Один event loop
+    scheduler_task = asyncio.create_task(notifServ.StartScheduler())    # Запуск планировщика в фоне
+    try:
+        await dp.start_polling(bot) # запуск бота в основном потоке
+    finally:
+        # Корректное завершение
+        scheduler_task.cancel()
+        try:
+            await scheduler_task
+        except asyncio.CancelledError:
+            pass
+        await bot.session.close()
 
 
 if __name__ == "__main__":
@@ -60,6 +77,7 @@ if __name__ == "__main__":
     bot = Bot(token=GetBotTokenEnv(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher(storage=RedisStorage.from_url(f"redis://{redcred.user}:{redcred.password}@{redcred.host}:{redcred.port}/1"))
     
+    dp.include_router(AdminAddNotificationRouter)
     dp.include_router(AdminNewMemberRouter)
     dp.include_router(AdminDelMemberRouter)
     dp.include_router(AdminEventCreatingRouter)
@@ -71,11 +89,15 @@ if __name__ == "__main__":
 
     logger = logging.getLogger("bas-bot-logger")
     logging.basicConfig(**LOGGING_KWARGS)
+    logging.getLogger('apscheduler').setLevel(logging.WARNING)  # Отключаем INFO-логирование от APScheduler
+
+    notifServ = NotificationService(bot)
+    # asyncio.run(notifServ.AddStorage(PgRedisStorage(pgcred, redcred)))
 
     dp.update.outer_middleware(LogMiddleware(logger))
     dp.update.outer_middleware(StorageMiddleware(PgRedisStorage, pgcred, redcred))
+    dp.update.outer_middleware(NotificationsMiddleware(notifServ))
     dp.update.outer_middleware(AgreementMiddleware())
     dp.update.outer_middleware(AuthMiddleware())
-
 
     asyncio.run(main())

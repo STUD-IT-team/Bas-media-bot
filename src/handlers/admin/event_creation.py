@@ -3,11 +3,12 @@ from models.activist import Activist, Admin
 from handlers.state import AdminEventCreatingStates
 from handlers.usertransition import TransitToAdminDefault
 from keyboards.default.admin import AdminDefaultKeyboard
-from keyboards.activist.choosing import MemberChoosingCancelKeyboard, MemberChoosingKeyboard
+from keyboards.activist.choosing import MemberChoosingCancelKeyboard
 from keyboards.confirmation.yesno import YesNoKeyboard
 from keyboards.confirmation.cancel import CancelKeyboard
 from datetime import datetime
 from utils.strings import EnumerateStrings, NewlineJoin
+from utils.date_time import GetTimeDateFormatDescription, GetTimeDateFormatExample, ParseTimeDate
 
 from uuid import UUID, uuid4
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
@@ -17,7 +18,10 @@ from aiogram.fsm.context import FSMContext
 from storage.storage import BaseStorage
 from logging import Logger
 from aiogram import F
+from datetime import datetime, timedelta
 
+from notifications.NotificationService import NotificationService
+from models.notification import EventReminderNotif, AssignmentNotif
 
 AdminEventCreatingRouter = Router()
 
@@ -25,23 +29,6 @@ AdminEventCreatingRouter = Router()
 async def TransitToAdminCreatingEvent(message: Message, state: FSMContext):
     await state.set_state(AdminEventCreatingStates.EnteringName)
     await message.answer("Введите название мероприятия:", reply_markup=CancelKeyboard.Create())
-
-
-def GetTimeDateFormatDescription() -> str:
-    return "{День}-{Месяц}-{Год} {Час}:{Минуты}"
-
-
-def GetTimeDateFormatExample() -> str:
-    return "15-05-2022 18:00"
-
-
-def ParseTimeDate(dtstr : str) -> (datetime, bool):
-    try:
-        dt = datetime.strptime(dtstr, "%d-%m-%Y %H:%M")
-        return dt, True
-    except ValueError:
-        return None, False
-
 
 @AdminEventCreatingRouter.message(
     AdminEventCreatingStates(),
@@ -121,7 +108,7 @@ async def AdminEnterVideoCount(message: Message, storage: BaseStorage, state: FS
         await TransitToAdminDefault(message=message, state=state, admin=admin)
         raise Exception("No valid activists")
 
-    keyb = MemberChoosingKeyboard(acts)
+    keyb = MemberChoosingCancelKeyboard(acts)
     await state.update_data(data)
     await state.set_state(AdminEventCreatingStates.ChoosingChief)
     await message.answer(f"Выберите главного активиста", reply_markup=keyb.Create())
@@ -135,7 +122,7 @@ async def AdminEnterChief(message: Message, storage: BaseStorage, state: FSMCont
     if act is None:
         await message.answer(f"Активист с именем {chiefName} не найден.")
         acts = storage.GetValidActivists()
-        keyb = MemberChoosingKeyboard(acts)
+        keyb = MemberChoosingCancelKeyboard(acts)
         await message.answer(f"Выберите главного активиста", reply_markup=keyb.Create())
         raise ValueError(f"Chief {chiefName} not found")
     data["event-chief"] = act.ID.hex
@@ -210,16 +197,50 @@ async def AdminEnterMembers(message: Message, storage: BaseStorage, state: FSMCo
     AdminEventCreatingStates.Confirmation,
     F.text == YesNoKeyboard.YesButtonText
 )
-async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
+async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger, notifServ: NotificationService):
     data = await state.get_data()
     creator = storage.GetAdminByChatID(message.chat.id)
     try:
-        await PutEvent(storage, state, creator)
+        event = await PutEvent(storage, state, creator)
         await message.answer(f"Мероприятие {data['event-name']} успешно создано!")
     except BaseException as e:
         # TODO: Подумать над более подробной обработкой ошибок
         logger.error(f"Error occurred while creating event: {str(e)}")
         await message.answer(f"Произошла ошибка при создании мероприятия.")
+        await TransitToAdminDefault(message=message, state=state, admin=creator)
+        return
+
+    eventChiefID = UUID(hex=data["event-chief"])
+    eventActivistsIds = [UUID(hex=actID) for actID in data["event-activists"]]
+    eventChief = storage.GetActivistByID(eventChiefID)
+    eventActivists = [storage.GetActivistByID(actID) for actID in eventActivistsIds]
+    chatIDs = [eventChief.ChatID] + [a.ChatID for a in eventActivists]
+
+    try:
+        for cntDays in [1, 3]:
+            if event.Date - timedelta(days=cntDays) >= datetime.now():
+                n = EventReminderNotif(
+                    uuid4(),
+                    "",
+                    datetime.now() + timedelta(days=cntDays),
+                    chatIDs,
+                    event
+                )
+                await notifServ.AddNotification(n)
+        n = AssignmentNotif(
+            uuid4(),
+            "",
+            datetime.now(),
+            chatIDs,
+            event
+        )
+        await notifServ.AddNotification(n)
+    except BaseException as e:
+        logger.error(f"Error occurred while creating notification: {str(e)}")
+        await message.answer(f"Произошла ошибка при создании уведомлениий о событии.")
+        await TransitToAdminDefault(message=message, state=state, admin=creator)
+        return
+
     await TransitToAdminDefault(message=message, state=state, admin=creator)
 
 
@@ -233,7 +254,7 @@ async def AdminCanceledEventCreation(message: Message, storage: BaseStorage, sta
     await TransitToAdminDefault(message=message, state=state, admin=admin)
 
 
-async def PutEvent(storage: BaseStorage, state: FSMContext, creator: Admin):
+async def PutEvent(storage: BaseStorage, state: FSMContext, creator: Admin) -> Event:
     data = await state.get_data()
     eventID = uuid4()
 
@@ -251,6 +272,7 @@ async def PutEvent(storage: BaseStorage, state: FSMContext, creator: Admin):
         for act in data["event-activists"]
     ]
 
+    creatorActivistID = storage.GetActivistByChatID(creator.ChatID)
     dt, _ = ParseTimeDate(data["event-date"])
     event = Event(
         ID = eventID,
@@ -262,6 +284,8 @@ async def PutEvent(storage: BaseStorage, state: FSMContext, creator: Admin):
         Chief=chief, 
         Activists=members,
         CreatedAt = datetime.now(),
-        CreatedBy = creator.ID,
+        CreatedBy = creatorActivistID.ID,
     )
     storage.PutEvent(event)
+
+    return event

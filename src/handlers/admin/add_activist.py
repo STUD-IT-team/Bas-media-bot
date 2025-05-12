@@ -6,6 +6,7 @@ from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+from aiogram.filters import or_f
 from storage.storage import BaseStorage
 from logging import Logger
 from keyboards.default.admin import CancelAddMemberKeyboard
@@ -22,7 +23,10 @@ async def TransitToAdminNewMember(message : Message, storage : BaseStorage, stat
 
 
 @AdminNewMemberRouter.message(
-    AdminNewMemberStates.EnteringTelegramID or AdminNewMemberStates.EnteringName,
+    or_f(
+        AdminNewMemberStates.EnteringTelegramID,
+        AdminNewMemberStates.EnteringName
+    ),
     F.text == CancelAddMemberKeyboard.CancelAddMemberButtonText
 )
 async def AdminCancelAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
