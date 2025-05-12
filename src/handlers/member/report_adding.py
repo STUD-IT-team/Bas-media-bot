@@ -16,8 +16,9 @@ async def TransitToMemberReportAdding(message : Message, storage : BaseStorage, 
     activeEvents = storage.GetActiveEvents() # Добавить try except
     await message.answer("По какому мероприятию?", reply_markup=ActiveEventsKeyboard(activeEvents).Create())
 
+
 @MemberReportAddingRouter.message(
-    MemberReportAddingStates(),
+    MemberReportAddingStates.ChoosingEvent,
     F.text == ActiveEventsKeyboard.CancelOperationButtonText
 )
 async def MemberCancelReportAdding(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
