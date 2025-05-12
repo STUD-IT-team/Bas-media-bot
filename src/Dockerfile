@@ -1,4 +1,4 @@
-FROM python:3.13.2-alpine
+FROM python:3.13-alpine
 
 WORKDIR /usr/bot-stuff/
 
