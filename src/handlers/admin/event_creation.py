@@ -25,6 +25,7 @@ from models.notification import EventReminderNotif, AssignmentNotif
 
 AdminEventCreatingRouter = Router()
 
+
 async def TransitToAdminCreatingEvent(message: Message, state: FSMContext):
     await state.set_state(AdminEventCreatingStates.EnteringName)
     await message.answer("Введите название мероприятия:", reply_markup=CancelKeyboard.Create())
@@ -37,6 +38,7 @@ async def AdminCancelCreatingEvent(message: Message, storage: BaseStorage, state
     admin = storage.GetAdminByChatID(message.chat.id)
     await message.answer("Отмена создания мероприятия")
     await TransitToAdminDefault(message, state, admin)
+
 
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.EnteringName)
 async def AdminCreateEvent(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
@@ -69,6 +71,7 @@ async def AdminEnterPlace(message: Message, storage: BaseStorage, state: FSMCont
     await state.update_data(data)
     await state.set_state(AdminEventCreatingStates.EnteringPhotoCount)
     await message.answer(f"Введите количество фотографий", reply_markup=CancelKeyboard.Create())
+
 
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.EnteringPhotoCount)
 async def AdminEnterPhotoCount(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
@@ -111,7 +114,6 @@ async def AdminEnterVideoCount(message: Message, storage: BaseStorage, state: FS
     await message.answer(f"Выберите главного активиста", reply_markup=keyb.Create())
     
 
-
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.ChoosingChief)
 async def AdminEnterChief(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
     data = await state.get_data()
@@ -132,7 +134,6 @@ async def AdminEnterChief(message: Message, storage: BaseStorage, state: FSMCont
     await state.set_state(AdminEventCreatingStates.ChoosingMembers)
     await message.answer(f"Выберите активистов", reply_markup=keyb.Create())
     
-
 
 @AdminEventCreatingRouter.message(
     AdminEventCreatingStates.ChoosingMembers,
@@ -165,12 +166,14 @@ async def AdminEnterMembersStop(message: Message, storage: BaseStorage, state: F
     ), reply_markup=YesNoKeyboard.Create())
     await state.set_state(AdminEventCreatingStates.Confirmation)
 
+
 def GetNotChosenActivists(storage : BaseStorage, context : dict[str, any]) -> list[Activist]:
     acts = storage.GetValidActivists()
     chosenEventActivistsIds = [UUID(hex=actID) for actID in context["event-activists"]]
     chosenEventActivistsIds.append(UUID(hex=context["event-chief"]))
     acts = list(filter(lambda a: a.ID not in chosenEventActivistsIds, acts))
     return acts
+
 
 @AdminEventCreatingRouter.message(AdminEventCreatingStates.ChoosingMembers)
 async def AdminEnterMembers(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
@@ -188,6 +191,7 @@ async def AdminEnterMembers(message: Message, storage: BaseStorage, state: FSMCo
     keyb = MemberChoosingCancelKeyboard(GetNotChosenActivists(storage, data))
     await state.update_data(data)
     await message.answer(f"Выберите еще активистов", reply_markup=keyb.Create())
+
 
 @AdminEventCreatingRouter.message(
     AdminEventCreatingStates.Confirmation,
@@ -285,11 +289,3 @@ async def PutEvent(storage: BaseStorage, state: FSMContext, creator: Admin) -> E
     storage.PutEvent(event)
 
     return event
-
-
-
-
-
-
-
-

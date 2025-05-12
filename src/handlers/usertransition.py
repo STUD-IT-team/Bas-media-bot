@@ -10,8 +10,6 @@ from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 
 
-
-
 async def TransitToMemberDefault(message: Message, state: FSMContext, activist: Activist):
     await state.clear()
     await state.set_data({"user-type": "activist"})
@@ -25,9 +23,7 @@ async def TransitToAdminDefault(message: Message, state: FSMContext, admin: Admi
     await state.set_state(AdminStates.Default)
     await message.answer(f"Админ, {admin.Name}! Что хотите сделать?", reply_markup=AdminDefaultKeyboard.Create())
 
+
 async def TransitToUnauthorized(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("Не могу найти вас в своих базах, если это ошибка - напишите администратору", reply_markup=ReplyKeyboardRemove())
-
-
-

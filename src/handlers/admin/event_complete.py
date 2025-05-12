@@ -9,14 +9,14 @@ from handlers.state import AdminStates
 from keyboards.default.admin import AdminDefaultKeyboard
 from keyboards.events.activeevents import ActiveEventsKeyboard
 
-
-
 EventCompleteRouter = Router()
+
 
 async def CompleteOperationHandle(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
     admin = storage.GetAdminByChatID(message.chat.id)
     await message.answer("Операция отменена.", reply_markup=AdminDefaultKeyboard.Create())
     await TransitToAdminDefault(message, state, admin)
+
 
 @EventCompleteRouter.message(
     AdminStates.AdminCompletingEvent,

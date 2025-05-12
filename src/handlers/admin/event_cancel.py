@@ -16,6 +16,7 @@ from datetime import datetime
 
 EventCancelRouter = Router()
 
+
 async def CancelOperationHandle(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
     admin = storage.GetAdminByChatID(message.chat.id)
     await message.answer("Операция отменена.", reply_markup=AdminDefaultKeyboard.Create())
