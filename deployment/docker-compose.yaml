@@ -17,7 +17,7 @@ services:
             migrator-bas:
                 condition: service_completed_successfully
             redis-bas:
-                condition: service_started
+                condition: service_healthy
 
     db-bas:
         image: postgres:17.4-alpine3.20
@@ -61,6 +61,11 @@ services:
             - redis.env
         networks:
             - redis-bas
+        healthcheck:
+            test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
 networks:
     postgres-bas:
