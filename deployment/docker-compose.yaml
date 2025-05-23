@@ -1,66 +1,71 @@
 services:
     bot-bas:
         container_name: bot-bas
-        depends_on: 
-            migrator-bas:
-                condition: service_completed_successfully
-        build:
-            context: ../
-            dockerfile: ./src/Dockerfile
-        restart: unless-stopped     # always
-        ports: 
-            - "3012:3012"
+        hostname: bot-bas
+        restart: unless-stopped
+        build: ../src/
+        env_file:
+            - bot.env
+        ports:
+            - 3012:3012
         networks:
             - postgres-bas
             - redis-bas
-        env_file:
-            - bot.env
+        depends_on: 
+            db-bas:
+                condition: service_healthy
+            migrator-bas:
+                condition: service_completed_successfully
+            redis-bas:
+                condition: service_healthy
 
     db-bas:
+        image: postgres:17.4-alpine3.20
         container_name: db-bas
         hostname: db-bas
-        image: postgres:17.4-alpine3.20
-        command:
-            - "postgres"
+        restart: unless-stopped
+        command: postgres
         env_file:
             - postgres.env
         volumes:
             - ../data/db-data:/var/lib/postgresql/data
         ports:
-            - "5433:5432"
-        restart: unless-stopped     # always
-        deploy:
-            resources:
-                limits:
-                    cpus: '1'
-                    memory: 4G
+            - 5433:5432
         networks:
             - postgres-bas
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     migrator-bas:
         container_name: migrator-bas
-        depends_on: 
-            db-bas:
-                condition: service_started
+        hostname: migrator-bas
+        restart: no
+        build: ../migrations/
         env_file:
             - migrator.env
-        build:
-            context: ../migrations
-            dockerfile: Dockerfile
         networks:
             - postgres-bas
+        depends_on: 
+            db-bas:
+                condition: service_healthy
     
     redis-bas:
         container_name: redis-bas
         hostname: redis-bas
         restart: unless-stopped
-        build:
-            context: ./redis
-            dockerfile: ./Dockerfile
+        build: ../redis/
         env_file:
             - redis.env
         networks:
             - redis-bas
+        healthcheck:
+            test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
 networks:
     postgres-bas:

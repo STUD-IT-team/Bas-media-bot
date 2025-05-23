@@ -14,11 +14,13 @@ from models.activist import Activist
 
 AdminDelMemberRouter = Router()
 
+
 async def TransitToAdminDelMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await state.set_state(AdminMemberDeletingStates.ChoosingMember)
     validTgUserActivists = storage.GetValidTgUserActivists()
     tmptext = "Выберите пользователя, которого собираетесь удалить"
     await message.answer(tmptext, reply_markup=MemberChoosingKeyboard(validTgUserActivists).Create())
+
 
 @AdminDelMemberRouter.message(
     AdminMemberDeletingStates.ChoosingMember,
@@ -27,6 +29,7 @@ async def TransitToAdminDelMember(message : Message, storage : BaseStorage, stat
 async def AdminCancelDelMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     act = storage.GetAdminByChatID(message.chat.id)
     await TransitToAdminDefault(message=message, state=state, admin=act)
+
 
 @AdminDelMemberRouter.message(AdminMemberDeletingStates.ChoosingMember)
 async def AdminChooseDelMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
@@ -60,6 +63,7 @@ async def AdminChooseDelMember(message : Message, storage : BaseStorage, state :
                 reply_markup=YesNoKeyboard.Create())
     return 
 
+
 @AdminDelMemberRouter.message(
     AdminMemberDeletingStates.ConfirmingDelMember,
     F.text == YesNoKeyboard.YesButtonText
@@ -77,6 +81,7 @@ async def AdminCancelAddMember(message : Message, storage : BaseStorage, state :
     act = storage.GetAdminByChatID(message.chat.id)
     await TransitToAdminDefault(message=message, state=state, admin=act)
 
+
 @AdminDelMemberRouter.message(
     AdminMemberDeletingStates.ConfirmingDelMember,
     F.text == YesNoKeyboard.NoButtonText
@@ -86,9 +91,7 @@ async def AdminCancelAddMember(message : Message, storage : BaseStorage, state :
     act = storage.GetAdminByChatID(message.chat.id)
     await TransitToAdminDefault(message=message, state=state, admin=act)
 
+
 @AdminDelMemberRouter.message(AdminMemberDeletingStates.ConfirmingDelMember)
 async def AdminCancelAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await message.answer(f"Ответьте, пожалуйста да/нет")
-
-
-

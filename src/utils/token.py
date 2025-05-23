@@ -1,7 +1,9 @@
 import os
 
+
 def GetBotTokenEnv() -> str:
     return os.getenv('BOT_TOKEN')
+
 
 def GetRedisCredEnv() -> dict:
     return {
@@ -10,6 +12,7 @@ def GetRedisCredEnv() -> dict:
         "user" : os.getenv('REDIS_USER'),
         "password" : os.getenv('REDIS_PASSWORD')
     }
+
 
 def GetPgCredEnv() -> dict:
     return {

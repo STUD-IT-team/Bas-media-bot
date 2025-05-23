@@ -35,7 +35,3 @@ async def AdminPrintEvents(message: Message, storage: BaseStorage, state: FSMCon
         ))
     admin = storage.GetAdminByChatID(message.chat.id)
     await TransitToAdminDefault(message, state, admin)
-
-
-
-

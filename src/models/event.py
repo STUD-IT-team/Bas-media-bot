@@ -3,15 +3,18 @@ from uuid import UUID
 from datetime import datetime
 from models.activist import Activist, TgUserActivist
 
+
 class EventChief(BaseModel):
     ID : UUID
     EventID : UUID
     Activist : Activist
 
+
 class EventActivist(BaseModel):
     ID : UUID
     EventID : UUID
     Activist : Activist
+
 
 class Event(BaseModel):
     ID : UUID
@@ -27,15 +30,18 @@ class Event(BaseModel):
     CreatedBy : UUID
     CreatedAt : datetime
 
+
 class CanceledEvent(Event):
     IsCancelled : bool = True
     CanceledAt : datetime
-    CanceledBY : UUID
+    CanceledBy : UUID
+
 
 class CompletedEvent(Event):
     IsCompleted : bool = True
     CompletedAt : datetime
     CompletedBy : UUID
+
 
 class EventForActivist(BaseModel):
     ID: UUID

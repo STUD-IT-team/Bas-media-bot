@@ -37,9 +37,9 @@ W.I.P.
 │   ├── models - Доменные модели.
 │   ├── pkg - Сторонние пакеты.
 │   ├── storage - Работа с базой данных.
-│   ├── utils - Дополнительные уттилиты.
+│   ├── utils - Дополнительные утилиты.
 │   ├── requirements.txt - Файл с зависимостями для pip.
-│   ├── run.py - Файл точки входа.
+│   ├── run.py - Точка входа.
 │   └── ...
 └── README.md - Этот самый файл).
 ```
@@ -52,8 +52,8 @@ W.I.P.
 BOT_TOKEN = ID:TOKEN
 
 PG_HOST = db-bas
-PG_DB = bas
 PG_PORT = 5432
+PG_DB = bas
 PG_USER = <DB_USER>
 PG_PASSWORD = <DB_PASSWORD>
 
@@ -61,34 +61,42 @@ REDIS_HOST = redis-bas
 REDIS_PORT = 6379
 REDIS_USER = <RD_USER>
 REDIS_PASSWORD = <RD_USER_PASSWORD>
+
+TZ = Europe/Moscow
 ```
 
 ### migrator.env
 
 ```
 DB_HOST = db-bas
-DB_NAME = bas
 DB_PORT = 5432
+DB_NAME = bas
 DB_USER = <DB_USER>
 DB_PASSWORD = <DB_PASSWORD>
+
+TZ = Europe/Moscow
 ```
 
 ### postgres.env
 
 ```
 POSTGRES_HOST = db-bas
-POSTGRES_DB = bas
 POSTGRES_PORT = 5432
+POSTGRES_DB = bas
 POSTGRES_USER = <DB_USER>
 POSTGRES_PASSWORD = <DB_PASSWORD>
+
+TZ = Europe/Moscow
 ```
 
 ### redis.env
 
 ```
-REDIS_USER = <RD_USER>
 REDIS_PASSWORD = <RD_PASSWORD>
+REDIS_USER = <RD_USER>
 REDIS_USER_PASSWORD = <RD_USER_PASSWORD>
+
+TZ = Europe/Moscow
 ```
 
 ## Разработка
