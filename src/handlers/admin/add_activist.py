@@ -29,8 +29,8 @@ async def TransitToAdminNewMember(message : Message, storage : BaseStorage, stat
     F.text == CancelAddMemberKeyboard.CancelAddMemberButtonText
 )
 async def AdminCancelAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
-    act = storage.GetActivistByChatID(message.chat.id)
-    await TransitToAdminDefault(message=message, state=state, activist=act)
+    admin = storage.GetAdminByChatID(message.chat.id)
+    await TransitToAdminDefault(message=message, state=state, admin=admin)
 
 
 @AdminNewMemberRouter.message(AdminNewMemberStates.EnteringTelegramID)
@@ -44,15 +44,15 @@ async def AdminEnteringId(message : Message, storage : BaseStorage, state : FSMC
     tguser = storage.GetTgUserByUName(username.group(1))
     if tguser is None or not tguser.Agreed:
         await message.answer(f"Для добавления пользователя, он должен написать боту и согласиться на обработку персональных данных")
-        act = storage.GetActivistByChatID(message.chat.id)
-        await TransitToAdminDefault(message=message, state=state, activist=act)
+        admin = storage.GetAdminByChatID(message.chat.id)
+        await TransitToAdminDefault(message=message, state=state, admin=admin)
         return
     
     activist = storage.GetActivistByTgUserID(tguser.ID)
     if activist:
         await message.answer(f"Пользователь с ником @{tguser.Username} уже добавлен, его зовут {activist.Name}.")
-        act = storage.GetActivistByChatID(message.chat.id)
-        await TransitToAdminDefault(message=message, state=state, activist=act)
+        admin = storage.GetAdminByChatID(message.chat.id)
+        await TransitToAdminDefault(message=message, state=state, admin=admin)
         return
 
     data = await state.get_data()
@@ -70,5 +70,5 @@ async def AdminEnteringName(message : Message, storage : BaseStorage, state : FS
     storage.PutActivist(UUID(data["tgID"]), data["acname"])
     await message.answer(f"Пользователь {data["acname"]} добавлен.")
 
-    act = storage.GetActivistByChatID(message.chat.id)
-    await TransitToAdminDefault(message=message, state=state, activist=act)
+    admin = storage.GetAdminByChatID(message.chat.id)
+    await TransitToAdminDefault(message=message, state=state, admin=admin)
