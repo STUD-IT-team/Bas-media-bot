@@ -20,8 +20,9 @@ from handlers.admin.event_complete import EventCompleteRouter
 from handlers.admin.add_activist import AdminNewMemberRouter
 from handlers.admin.del_activist import AdminDelMemberRouter
 from handlers.admin.add_notification import AdminAddNotificationRouter
-from handlers.member.default import MemberDefaultRouter
 
+from handlers.member.default import MemberDefaultRouter
+from handlers.member.report_adding import MemberReportAddingRouter
 
 # Utils
 from utils.token import GetBotTokenEnv, GetRedisCredEnv, GetPgCredEnv
@@ -84,6 +85,7 @@ if __name__ == "__main__":
     dp.include_router(EventCancelRouter)
     dp.include_router(EventCompleteRouter)
     dp.include_router(AdminDefaultRouter)
+    dp.include_router(MemberReportAddingRouter)
     dp.include_router(MemberDefaultRouter)
     dp.include_router(UnknownRouter)
 

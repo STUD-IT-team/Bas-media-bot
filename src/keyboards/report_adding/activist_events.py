@@ -6,16 +6,16 @@ from aiogram.types.keyboard_button import KeyboardButton
 
 from keyboards.report_adding.cancel_button import CancelButton
 
-from models.event import Event
+from models.event import EventForActivist
 
 
-class ChosingActiveEventsKeyboard:
-    def __init__(self, events: list[Event]):
+class ActivistEventsKeyboard:
+    def __init__(self, events: list[EventForActivist]):
         if not isinstance(events, list):
             raise ValueError("events must be list")
 
-        if not all(isinstance(event, Event) for event in events):
-            raise ValueError("events list must contain only instances of Event")
+        if not all(isinstance(event, EventForActivist) for event in events):
+            raise ValueError(f"events list must contain only instances of EventForActivist")
 
         # Отсортированы по алфавиту.
         self.eventButtonTexts = sorted([event.Name for event in events])
