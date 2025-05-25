@@ -25,8 +25,8 @@ async def ActivistEventsInfo(message : Message, storage : BaseStorage, state : F
     MemberStates.Default,
     F.text == MemberDefaultKeyboard.MakeReportButtonText,
 )
-async def MemberAddReport(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger):
-    await TransitToMemberReportAdding(message=message, storage=storage, state=state, logger=logger)
+async def MemberAddReport(message: Message, storage: BaseStorage, state: FSMContext):
+    await TransitToMemberReportAdding(message=message, storage=storage, state=state)
 
 
 @MemberDefaultRouter.message(MemberStates.Default)

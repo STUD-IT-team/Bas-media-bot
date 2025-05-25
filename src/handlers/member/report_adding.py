@@ -5,8 +5,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 
-from logging import Logger
-
 from storage.storage import BaseStorage
 
 # Переход в дефолтную стейт машину:
@@ -65,7 +63,7 @@ async def getActivistEventsKeyboard(message: Message, storage: BaseStorage, acti
 
 
 # Ручка перехода в составление отчёта
-async def TransitToMemberReportAdding(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger) -> None:
+async def TransitToMemberReportAdding(message: Message, storage: BaseStorage, state: FSMContext) -> None:
     await state.set_state(MemberReportAddingStates.ChoosingEvent)
 
     activist = await getActivist(message, storage)
@@ -168,6 +166,59 @@ async def MemberChoosingReportType(message: Message, storage: BaseStorage, state
     
     await state.update_data(data)
     await state.set_state(MemberReportAddingStates.EnteringLink)
+
+    return
+
+
+# Ввод ссылки на отчёт
+@MemberReportAddingRouter.message(
+    MemberReportAddingStates.EnteringLink
+)
+async def MemberEnteringLink(message: Message, storage: BaseStorage, state: FSMContext) -> None:
+    data = await state.get_data()
+    reportURL = message.text
+
+    if not IsCorrectReportUrl(reportURL):
+        await message.answer("Ссылка не соответствует формату, попробуйте ещё раз.")
+        
+        return
+    
+    await message.answer("Подтвердите информацию: тут будет информация", reply_markup=ReportConfirmKeyboard.Create()) # черновое
+    
+    data["report-url"] = reportURL
+    await state.update_data(data)
+    await state.set_state(MemberReportAddingStates.Confirmation)
+
+    return
+
+
+# Подтверждение отчёта
+@MemberReportAddingRouter.message(
+    MemberReportAddingStates.Confirmation,
+    F.text == ReportConfirmKeyboard.ConfirmButtonText
+)
+async def MemberConfirm(message: Message, storage: BaseStorage, state: FSMContext) -> None:
+    # черновик
+    await message.answer("Отчёт сохранён.", reply_markup=ReplyKeyboardRemove())
+
+    activist = await getActivist(message, storage)
+
+    await TransitToMemberDefault(message=message, state=state, activist=activist)
+
+    return
+
+# Подтверждение отчёта
+@MemberReportAddingRouter.message(
+    MemberReportAddingStates.Confirmation,
+    F.text == ReportConfirmKeyboard.RetryButtonText
+)
+async def MemberRetry(message: Message, storage: BaseStorage, state: FSMContext) -> None:
+    # черновик
+    await message.answer("Начинаю с начала.", reply_markup=ReplyKeyboardRemove())
+
+    activist = await getActivist(message, storage)
+
+    await TransitToMemberReportAdding(message=message, storage=storage, state=state)
 
     return
 
