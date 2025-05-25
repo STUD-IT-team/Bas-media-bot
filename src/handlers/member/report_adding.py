@@ -45,7 +45,7 @@ async def getActivist(message: Message, storage: BaseStorage) -> Activist:
     return activist
 
 
-# Создание актуальной клавиатуры мероприятий с выводом ошибки в чат 
+# Создание актуальной клавиатуры мероприятий с выводом ошибки в чат
 async def getActivistEventsKeyboard(message: Message, storage: BaseStorage, activist: Activist) -> ReplyKeyboardMarkup:
     try:
         if not isinstance(activist, Activist):
