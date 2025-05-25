@@ -3,3 +3,7 @@ def NewlineJoin(*strings) -> str:
 
 def EnumerateStrings(*strings) -> list[str]:
     return [f'{i+1}. {s}' for i, s in enumerate(strings)]
+
+# Используется в MemberReportAdding. В состоянии EnteringLink.
+def IsCorrectReportUrl(string: str) -> bool:
+    return string != "Wrong" # Временно
