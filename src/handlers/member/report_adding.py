@@ -1,4 +1,5 @@
 from aiogram import Router, F
+from aiogram.filters import or_f
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
@@ -142,10 +143,33 @@ async def MemberChoosingEvent(message: Message, storage: BaseStorage, state: FSM
 # Выбор типа отчёта
 @MemberReportAddingRouter.message(
     MemberReportAddingStates.ChoosingType,
-    F.text in (ReportTypeKeyboard.PhotoButtonText, ReportTypeKeyboard.VideoButtonText)
+    or_f(
+        F.text == ReportTypeKeyboard.PhotoButtonText, 
+        F.text == ReportTypeKeyboard.VideoButtonText
+        )
 )
 async def MemberChoosingReportType(message: Message, storage: BaseStorage, state: FSMContext) -> None:
-    pass
+    data = await state.get_data()
+    reportType = message.text
+
+    await message.answer(f"Выбран тип отчёта: {reportType}.", reply_markup=ReplyKeyboardRemove())
+
+    await message.answer(NewlineJoin(
+        "Отправьте ссылку на Яндекс Диск с отчётом.",
+        "",
+        "<b>Формат: https://disk.yandex.ru/d/randomletters</b>"
+    ), reply_markup=CancelLinkKeyboard.Create())
+
+    # Переписать это когда будут нормальные модели:
+    if reportType == ReportTypeKeyboard.PhotoButtonText:
+        data["report-type"] = "photo"
+    else:
+        data["report-type"] = "video"
+    
+    await state.update_data(data)
+    await state.set_state(MemberReportAddingStates.EnteringLink)
+
+    return
 
 
 # Не сработало ни одной ручки составления отчёта
