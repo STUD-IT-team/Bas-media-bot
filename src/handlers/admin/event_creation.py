@@ -197,7 +197,7 @@ async def AdminConfirmedEvent(message: Message, storage: BaseStorage, state: FSM
     data = await state.get_data()
     creator = storage.GetAdminByChatID(message.chat.id)
     try:
-        event = await PutEvent(storage, state, creator)
+        event = await PutEvent(storage, state, creator, logger)
         await message.answer(f"Мероприятие {data['event-name']} успешно создано!")
     except BaseException as e:
         # TODO: Подумать над более подробной обработкой ошибок
@@ -250,7 +250,7 @@ async def AdminCanceledEventCreation(message: Message, storage: BaseStorage, sta
     await TransitToAdminDefault(message=message, state=state, admin=admin)
 
 
-async def PutEvent(storage: BaseStorage, state: FSMContext, creator: Admin) -> Event:
+async def PutEvent(storage: BaseStorage, state: FSMContext, creator: Admin, logger) -> Event:
     data = await state.get_data()
     eventID = uuid4()
 
@@ -280,7 +280,7 @@ async def PutEvent(storage: BaseStorage, state: FSMContext, creator: Admin) -> E
         Chief=chief, 
         Activists=members,
         CreatedAt = datetime.now(),
-        CreatedBy = creatorActivistID.ID,
+        CreatedBy = creator.ID,
     )
     storage.PutEvent(event)
 

@@ -1,5 +1,6 @@
 from handlers.state import MemberStates
 from handlers.member.list_of_events import getListOfEvents
+from handlers.member.report_adding import TransitToMemberReportAdding
 
 from aiogram import Router
 from aiogram.types import Message
@@ -18,6 +19,14 @@ MemberDefaultRouter = Router()
 )
 async def ActivistEventsInfo(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await getListOfEvents(message, state, storage)
+
+
+@MemberDefaultRouter.message(
+    MemberStates.Default,
+    F.text == MemberDefaultKeyboard.MakeReportButtonText,
+)
+async def MemberAddReport(message: Message, storage: BaseStorage, state: FSMContext):
+    await TransitToMemberReportAdding(message=message, storage=storage, state=state)
 
 
 @MemberDefaultRouter.message(MemberStates.Default)

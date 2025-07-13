@@ -3,10 +3,11 @@ from aiogram.fsm.state import StatesGroup, State
 class MemberStates(StatesGroup):
     Default = State()
     
-class MemberAddingReportStates(StatesGroup):
-    Choosing = State()
+class MemberReportAddingStates(StatesGroup):
+    ChoosingEvent = State()
     ChoosingType = State()
     EnteringLink = State()
+    Confirmation = State()
 
 class AdminStates(StatesGroup):
     Default = State()

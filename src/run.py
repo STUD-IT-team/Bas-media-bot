@@ -4,6 +4,8 @@ import sys
 import asyncio
 import redis
 import logging
+import argparse
+from dotenv import load_dotenv
 
 # Aiogram
 from aiogram import Bot, Dispatcher, Router
@@ -20,8 +22,9 @@ from handlers.admin.event_complete import EventCompleteRouter
 from handlers.admin.add_activist import AdminNewMemberRouter
 from handlers.admin.del_activist import AdminDelMemberRouter
 from handlers.admin.add_notification import AdminAddNotificationRouter
-from handlers.member.default import MemberDefaultRouter
 
+from handlers.member.default import MemberDefaultRouter
+from handlers.member.report_adding import MemberReportAddingRouter
 
 # Utils
 from utils.token import GetBotTokenEnv, GetRedisCredEnv, GetPgCredEnv
@@ -64,7 +67,16 @@ async def main() -> None:
         await bot.session.close()
 
 
+def parse():
+    parser = argparse.ArgumentParser(description='Bas Media Bot')
+    parser.add_argument('--env-file', type=str, default='deployment/bot.env', help='Path to env file')
+    return parser.parse_args()
+
 if __name__ == "__main__":
+    args = parse()
+    with open(args.env_file) as f:
+        load_dotenv(stream=f)
+
     pgcred = PostgresCredentials(**GetPgCredEnv())
     redcred = RedisCredentials(**GetRedisCredEnv(), db=0)
     try:
@@ -84,6 +96,7 @@ if __name__ == "__main__":
     dp.include_router(EventCancelRouter)
     dp.include_router(EventCompleteRouter)
     dp.include_router(AdminDefaultRouter)
+    dp.include_router(MemberReportAddingRouter)
     dp.include_router(MemberDefaultRouter)
     dp.include_router(UnknownRouter)
 

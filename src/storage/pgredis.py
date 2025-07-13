@@ -6,6 +6,7 @@ from models.event import Event, EventActivist, EventChief, EventForActivist
 from models.notification import BaseNotification, BaseNotifWithEvent, NotifRegistryBase
 from models.telegram import TelegramUserAgreement
 from models.event import CanceledEvent, CompletedEvent
+from models.report import Report
 from uuid import UUID
 from datetime import datetime
 from psycopg2.extras import RealDictCursor
@@ -599,6 +600,42 @@ class PgRedisStorage(BaseStorage):
 
         cur.close()
         return events
+    
+    def GetActiveEventsByActivistID(self, ActivistID: UUID) -> list[EventForActivist]:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT e.id AS event_id, e.evname, e.evdate, e.photo_amount, e.video_amount
+            FROM event_member em
+            JOIN event e ON em.event_id = e.id
+            WHERE em.activist_id = %s AND NOT EXISTS (
+                SELECT *
+                FROM completed_event
+                WHERE event_id = e.id
+            )
+            AND NOT EXISTS (
+                SELECT *
+                FROM canceled_event
+                WHERE event_id = e.id
+            );
+        """, (ActivistID.hex,))
+
+        rows = cur.fetchall()
+        cur.close()
+        
+        acts = []
+        for row in rows:
+            event_id = row[0]
+            chief = self.GetTgUserActivistByActivistID(self.getEventChief(UUID(hex=event_id)).Activist.ID)
+            event = EventForActivist( 
+                ID = UUID(hex=event_id),
+                Name = row[1],  
+                Date = row[2], 
+                Chief = chief, 
+                PhotoCount = row[3],
+                VideoCount = row[4]
+            )
+            acts.append(event)
+        return acts
 
     def GetTgUserActivistByActivistID(self, ActivistID: UUID) -> TgUserActivist:
         cur = self.conn.cursor()
@@ -620,4 +657,70 @@ class PgRedisStorage(BaseStorage):
             Agreed = result[5]
         )
         return TgUserAct
+
+    def GetEventMemberByActivist(self, event_id: UUID, activist_id: UUID) -> EventActivist:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT activist.id, event_member.id, tg_user.chat_id, acname, valid
+            FROM activist JOIN tg_user ON activist.tg_user_id = tg_user.id
+            JOIN event_member ON event_member.activist_id = activist.id
+            WHERE event_member.event_id = %s AND activist.id = %s;
+        """, (event_id.hex, activist_id.hex))
+        result = cur.fetchone()
+        
+        evact = EventActivist(
+            ID = UUID(hex=result[1]),
+            EventID = event_id,
+            Activist = Activist(
+                ID = UUID(hex=result[0]),
+                ChatID = result[2],
+                Name = result[3],
+                Valid = result[4]
+            )
+        )
+        return evact
+    
+    def GetActiveEventByNameForActivist(self, name: str, activistID: UUID) -> EventForActivist:
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT e.id AS event_id, e.evname, e.evdate, e.photo_amount, e.video_amount
+            FROM event_member em
+            JOIN event e ON em.event_id = e.id
+            WHERE em.activist_id = %s AND e.evname = %s AND NOT EXISTS (
+                SELECT *
+                FROM completed_event
+                WHERE event_id = e.id
+            )
+            AND NOT EXISTS (
+                SELECT *
+                FROM canceled_event
+                WHERE event_id = e.id
+            );
+        """, (activistID.hex, name))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            event_id = row[0]
+            chief = self.GetTgUserActivistByActivistID(self.getEventChief(UUID(hex=event_id)).Activist.ID)
+            event = EventForActivist( 
+                ID = UUID(hex=event_id),
+                Name = row[1],  
+                Date = row[2], 
+                Chief = chief, 
+                PhotoCount = row[3],
+                VideoCount = row[4]
+            )
+            return event
+        return None
+    
+    def CreateReport(self, report: Report):
+        evact = self.GetEventMemberByActivist(report.EventID, report.Activist.ID)
+        cur = self.conn.cursor()
+        cur.execute("""
+            INSERT INTO report (id, event_member_id, report_type, url, created_at)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (report.ID.hex, evact.ID.hex, report.Type, report.URL, report.CreatedAt))
+        self.conn.commit()
+    
+
 
