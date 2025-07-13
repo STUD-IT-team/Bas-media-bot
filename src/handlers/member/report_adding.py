@@ -4,6 +4,8 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
+from models.report import Report, ReportType
+from logging import Logger
 
 from storage.storage import BaseStorage
 
@@ -51,9 +53,7 @@ async def getActivistEventsKeyboard(message: Message, storage: BaseStorage, acti
         if not isinstance(activist, Activist):
             raise ValueError("activist should be instance of Activist")
 
-        # Нужно заменить на Get Active Events By Activist ID.
-        # Иначе будут выводится закрытые и отменённые меро.
-        activistEvents = storage.GetEventsByActivistID(activist.ID)
+        activistEvents = storage.GetActiveEventsByActivistID(activist.ID)
         activistEventsKeyboard = ActivistEventsKeyboard(activistEvents)
     except:
         message.answer("Ошибка при получении информации о ваших мероприятиях.")
@@ -101,10 +101,7 @@ async def MemberChoosingEvent(message: Message, storage: BaseStorage, state: FSM
     activist = await getActivist(message, storage)
     
     try:
-        # Заменить на Get Active Event By Chat ID And Name.
-        # Иначе пользователь может получить не своё мероприятие.
-        # А также тут есть потенциальная SQL инъекция.
-        event = storage.GetActiveEventByName(eventName)
+        event = storage.GetActiveEventByNameForActivist(eventName, activist.ID)
     except:
         message.answer("Ошибка при получении информации о мероприятии.")
         raise
@@ -123,7 +120,7 @@ async def MemberChoosingEvent(message: Message, storage: BaseStorage, state: FSM
         "Мероприятие найдено!",
         "",
         f"Название: <b>{event.Name}</b>",
-        "Ответственный: <b>{event.Chief.Name} @{event.Chief.Username}</b>", # код будет работать с EventForActivist а не с Event
+        f"Ответственный: <b>{event.Chief.Name} @{event.Chief.Username}</b>",
         f"Дата и время: <b>{event.Date.strftime(TIME_FORMAT)}</b>",
         f"Количество Фото: <b>{str(event.PhotoCount)}</b>",
         f"Количество Видео: <b>{str(event.VideoCount)}</b>"
@@ -131,14 +128,14 @@ async def MemberChoosingEvent(message: Message, storage: BaseStorage, state: FSM
 
     await message.answer("Выберите тип отчёта:", reply_markup=ReportTypeKeyboard.Create())
 
-    data["event-id"] = str(event.ID) # Должен бы быть event-member-id
+    data["event-id"] = str(event.ID)
+    data["event-name"] = event.Name
     await state.update_data(data)
     await state.set_state(MemberReportAddingStates.ChoosingType)
 
     return
 
 
-# Выбор типа отчёта
 @MemberReportAddingRouter.message(
     MemberReportAddingStates.ChoosingType,
     or_f(
@@ -150,19 +147,20 @@ async def MemberChoosingReportType(message: Message, storage: BaseStorage, state
     data = await state.get_data()
     reportType = message.text
 
-    await message.answer(f"Выбран тип отчёта: {reportType}.", reply_markup=ReplyKeyboardRemove())
+    if reportType == ReportTypeKeyboard.PhotoButtonText:
+        data["report-type"] = ReportType.Photo
+    elif reportType == ReportTypeKeyboard.VideoButtonText:
+        data["report-type"] = ReportType.Video
+    else:
+        await message.answer(f"Не понял введённую команду. Попробуйте ещё раз.", reply_markup=ReportTypeKeyboard.Create())
+        raise ValueError(f"Invalid report type: {reportType}")
 
+    await message.answer(f"Выбран тип отчёта: {reportType}.", reply_markup=ReplyKeyboardRemove())
     await message.answer(NewlineJoin(
         "Отправьте ссылку на Яндекс Диск с отчётом.",
         "",
         "<b>Формат: https://disk.yandex.ru/d/randomletters</b>"
     ), reply_markup=CancelLinkKeyboard.Create())
-
-    # Переписать это когда будут нормальные модели:
-    if reportType == ReportTypeKeyboard.PhotoButtonText:
-        data["report-type"] = "photo"
-    else:
-        data["report-type"] = "video"
     
     await state.update_data(data)
     await state.set_state(MemberReportAddingStates.EnteringLink)
@@ -183,7 +181,22 @@ async def MemberEnteringLink(message: Message, storage: BaseStorage, state: FSMC
         
         return
     
-    await message.answer("Подтвердите информацию: тут будет информация", reply_markup=ReportConfirmKeyboard.Create()) # черновое
+    match data["report-type"]:
+        case ReportType.Photo:
+            reportTypeText = "Фото"
+        case ReportType.Video:
+            reportTypeText = "Видео"
+        case _:
+            reportTypeText = "Неизвестный (Wtf?)"
+    
+    await message.answer(
+        NewlineJoin(
+            "Подтвердите информацию:",
+            f"Название мероприятия: <b>{data['event-name']}</b>",
+            f"Тип отчёта: <b>{reportTypeText}</b>",
+            f"Ссылка: <b>{reportURL}</b>",
+        ),
+        reply_markup=ReportConfirmKeyboard.Create())
     
     data["report-url"] = reportURL
     await state.update_data(data)
@@ -197,12 +210,24 @@ async def MemberEnteringLink(message: Message, storage: BaseStorage, state: FSMC
     MemberReportAddingStates.Confirmation,
     F.text == ReportConfirmKeyboard.ConfirmButtonText
 )
-async def MemberConfirm(message: Message, storage: BaseStorage, state: FSMContext) -> None:
-    # черновик
-    await message.answer("Отчёт сохранён.", reply_markup=ReplyKeyboardRemove())
-
+async def MemberConfirm(message: Message, storage: BaseStorage, state: FSMContext, logger: Logger) -> None:
     activist = await getActivist(message, storage)
 
+    data = await state.get_data()
+
+    try:
+        report = Report(
+            EventID = data["event-id"],
+            Type = data["report-type"],
+            URL = data["report-url"],
+            Activist = activist
+        )
+        storage.CreateReport(report)
+    except BaseException as e:
+        logger.error(f"Error occurred while creating report: {str(e)}")
+        await message.answer(f"Произошла ошибка при создании отчёта.")
+    else:
+        await message.answer("Отчёт сохранён.", reply_markup=ReplyKeyboardRemove())
     await TransitToMemberDefault(message=message, state=state, activist=activist)
 
     return
@@ -213,7 +238,6 @@ async def MemberConfirm(message: Message, storage: BaseStorage, state: FSMContex
     F.text == ReportConfirmKeyboard.RetryButtonText
 )
 async def MemberRetry(message: Message, storage: BaseStorage, state: FSMContext) -> None:
-    # черновик
     await message.answer("Начинаю с начала.", reply_markup=ReplyKeyboardRemove())
 
     activist = await getActivist(message, storage)
@@ -229,9 +253,3 @@ async def UnknownReportAdding(message: Message, storage: BaseStorage, state: FSM
     await message.answer("Неизвестный вариант ответа. Попробуйте ещё раз.")
 
     return
-
-# Добавить попытки ошибок, и авто перекидывание на Default.
-
-# Дописать новые модели и storage.
-
-# Исправить работу с базой. (Нет поля Photo/Video у Report)

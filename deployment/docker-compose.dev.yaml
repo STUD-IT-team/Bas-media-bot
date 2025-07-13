@@ -25,7 +25,7 @@ services:
         env_file:
             - postgres.env
         volumes:
-            - ../data/db-data:/var/lib/postgresql/data
+            - postgres-bas:/var/lib/postgresql/data
         ports:
             - "5433:5432"
         restart: unless-stopped     # always
@@ -35,7 +35,7 @@ services:
                     cpus: '1'
                     memory: 4G
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -59,6 +59,8 @@ services:
         container_name: redis-bas
         hostname: redis-bas
         restart: unless-stopped
+        ports:
+            - "6379:6379"
         build:
             context: ./redis
             dockerfile: ./Dockerfile
@@ -72,3 +74,7 @@ networks:
         name: postgres-bas
     redis-bas:
         name: redis-bas
+
+volumes:
+    postgres-bas:
+

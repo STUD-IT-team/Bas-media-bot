@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS event (
   CONSTRAINT video_amount_notnull CHECK (video_amount IS NOT NULL),
   CONSTRAINT video_amount_positive CHECK (video_amount > 0),
   CONSTRAINT created_by_notnull CHECK (created_by IS NOT NULL),
-  CONSTRAINT created_by_fkey FOREIGN KEY (created_by) REFERENCES activist (id),
+  CONSTRAINT created_by_fkey FOREIGN KEY (created_by) REFERENCES tg_admin (id),
   CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL)
 );
 
@@ -67,13 +67,11 @@ CREATE UNIQUE INDEX ON event_member (event_id, is_chief)
 WHERE
   is_chief = TRUE;
 
-CREATE TYPE url_type AS ENUM('disk.yandex');
 
 CREATE TABLE IF NOT EXISTS report (
   id UUID PRIMARY KEY,
   event_member_id UUID,
-  url VARCHAR(255),
-  url_type url_type,
+  url TEXT,
   created_at TIMESTAMP,
   CONSTRAINT event_member_id_notnull CHECK (event_member_id IS NOT NULL),
   CONSTRAINT event_member_id_fkey FOREIGN KEY (event_member_id) REFERENCES event_member (id),
