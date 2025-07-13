@@ -3,6 +3,7 @@ SHELL:=/bin/bash
 DOCKER:=docker
 COMPOSE_DEV:=deployment/docker-compose.dev.yaml
 COMPOSE_PROD:=deployment/docker-compose.yaml
+COMPOSE_ENV:=deployment/compose.env
 CONTAINERS:=db-bas migrator-bas redis-bas
 
 REQUIREMENTS:=./src/requirements.txt
@@ -22,16 +23,16 @@ init-venv:
 	$(VENVDIR)/bin/pip install -r $(REQUIREMENTS)
 
 %up:
-	$(DOCKER) compose  -f $(call compose_file,$@) up -d $(CONTAINERS)
+	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d $(CONTAINERS)
 
 %upd:
-	$(DOCKER) compose  -f $(call compose_file,$@) up -d --build $(CONTAINERS)
+	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d --build $(CONTAINERS)
 
 %upda: 
-	$(DOCKER) compose  -f $(call compose_file,$@) up --build $(CONTAINERS)
+	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up --build $(CONTAINERS)
 
 %down:
-	$(DOCKER) compose  -f $(call compose_file,$@) down 
+	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) down 
 
 .PHONY: example
 
