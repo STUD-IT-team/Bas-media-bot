@@ -4,6 +4,8 @@ import sys
 import asyncio
 import redis
 import logging
+import argparse
+from dotenv import load_dotenv
 
 # Aiogram
 from aiogram import Bot, Dispatcher, Router
@@ -65,7 +67,16 @@ async def main() -> None:
         await bot.session.close()
 
 
+def parse():
+    parser = argparse.ArgumentParser(description='Bas Media Bot')
+    parser.add_argument('--env-file', type=str, default='deployment/bot.env', help='Path to env file')
+    return parser.parse_args()
+
 if __name__ == "__main__":
+    args = parse()
+    with open(args.env_file) as f:
+        load_dotenv(stream=f)
+
     pgcred = PostgresCredentials(**GetPgCredEnv())
     redcred = RedisCredentials(**GetRedisCredEnv(), db=0)
     try:

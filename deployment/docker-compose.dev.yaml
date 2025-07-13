@@ -1,20 +1,20 @@
 services:
-    bot-bas:
-        container_name: bot-bas
-        depends_on: 
-            migrator-bas:
-                condition: service_completed_successfully
-        build:
-            context: ../
-            dockerfile: ./src/Dockerfile
-        restart: unless-stopped     # always
-        ports: 
-            - "3012:3012"
-        networks:
-            - postgres-bas
-            - redis-bas
-        env_file:
-            - bot.env
+    # bot-bas:
+    #     container_name: bot-bas
+    #     depends_on: 
+    #         migrator-bas:
+    #             condition: service_completed_successfully
+    #     build:
+    #         context: ../
+    #         dockerfile: ./src/Dockerfile
+    #     restart: unless-stopped     # always
+    #     ports: 
+    #         - "3012:3012"
+    #     networks:
+    #         - postgres-bas
+    #         - redis-bas
+    #     env_file:
+    #         - bot.env
 
     db-bas:
         container_name: db-bas
@@ -34,6 +34,11 @@ services:
                 limits:
                     cpus: '1'
                     memory: 4G
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
         networks:
             - postgres-bas
 
