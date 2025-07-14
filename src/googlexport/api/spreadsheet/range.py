@@ -40,11 +40,33 @@ class SheetRange:
             self._valueMatrix = valueMatrix
         else:
             self._valueMatrix = valueMatrix
-                                    
-    def Address(self):
-        return f"{self._sheet.title}!{TransformSheetAddress(self._startRow, self._startColumn)}:{TransformSheetAddress(self._endRow, self._endColumn)}"
     
+    # end - exclusive
+    def SubRange(self, startRowOffset: int, startColumnOffset: int, endRowOffset: int, endColumnOffset: int):
+        if not isinstance(startRowOffset, int):
+            raise ValueError("startRowOffset must be an int")
+        
+        if not isinstance(startColumnOffset, int):
+            raise ValueError("startColumnOffset must be an int")
+        
+        if not isinstance(endRowOffset, int):
+            raise ValueError("endRowOffset must be an int")
+        
+        if not isinstance(endColumnOffset, int):
+            raise ValueError("endColumnOffset must be an int")
+        
+        if startRowOffset < 0 or startColumnOffset < 0 or endRowOffset < 0 or endColumnOffset < 0:
+            raise ValueError("startRowOffset, startColumnOffset, endRowOffset and endColumnOffset must be positive or zero int")
+        
+        if startRowOffset >= self.endRow or startColumnOffset >= self.endColumn or endRowOffset >= self.endRow or endColumnOffset >= self.endColumn:
+            raise ValueError("startRowOffset, startColumnOffset, endRowOffset and endColumnOffset must be less than endRow and endColumn")
+        
+        subMatrix = [self._valueMatrix[i][startColumnOffset:endColumnOffset] for i in range(startRowOffset, endRowOffset)]
+        return SheetRange(self._sheet, self._startRow + startRowOffset, self._startColumn + startColumnOffset, self._startRow + endRowOffset, self._startColumn + endColumnOffset, subMatrix)                                 
 
+    def Address(self):
+        return f"'{self._sheet.title}'!{TransformSheetAddress(self._startRow, self._startColumn)}:{TransformSheetAddress(self._endRow, self._endColumn)}"
+    
     # Starts from 1
     @property
     def startRow(self):
@@ -80,6 +102,16 @@ class SheetRange:
     # Array index, which starts from 0
     def setValueFromZero(self, row: int, column: int, value: str):
         self._valueMatrix[row][column] = value
+    
+    def AddRow(self):
+        self._valueMatrix.append(["" for _ in range(self._endColumn - self._startColumn)])
+        self._endRow += 1
+    
+    def AddColumn(self):
+        for row in self._valueMatrix:
+            row.append("")
+        self._endColumn += 1
+
 
 def TransformSheetAddress(row: int, column: int) -> str:
     return f"{TransformRowAddress(row)}{TransformColumnAddress(column)}"
@@ -159,3 +191,19 @@ class WipeSheetRangeRequest(SetSheetRangeRequest):
 class WipeSheetRequest(WipeSheetRangeRequest):
     def __init__(self, sheet: GoogleSheet):
         super().__init__(sheet, 0, 0, sheet.rowCount, sheet.columnCount)
+
+
+class MergeSheetRangeRequest(SheetRequest):
+    def __init__(self, sheetRange: SheetRange):
+        if not isinstance(sheetRange, SheetRange):
+            raise ValueError("sheetRange must be an instance of SheetRange")
+        
+        self._sheetRange = sheetRange
+    
+    def _dictRequest(self, googleSheet: GoogleSheet):
+        return {
+            'mergeCells': {
+                'range': self._sheetRange.Address(),
+                'mergeType': 'MERGE_ALL'
+            }
+        }

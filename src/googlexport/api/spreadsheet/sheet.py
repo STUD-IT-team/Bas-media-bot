@@ -44,7 +44,7 @@ class GoogleSheet:
         
         sheet = spreadsheet._sheetByTitle(title)
         if sheet is None:
-            raise ValueError("title does not exist")
+            raise SheetNotFoundError("title does not exist")
         
         return GoogleSheet(spreadsheet, sheet)
     
@@ -150,3 +150,7 @@ class AddSheetColumnsRequest(SheetRequest):
               'fields': 'gridProperties.columnCount'    
           }
       }
+    
+
+class SheetNotFoundError(Exception):
+    pass
