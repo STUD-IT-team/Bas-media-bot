@@ -1,8 +1,11 @@
 from googlexport.api.client import GoogleServiceClient
 from googlexport.report.repository import ExporterRepository
-from googlexport.api.spreadsheet import GoogleSpreadsheet
+from googlexport.api.spreadsheet.spreadsheet import GoogleSpreadsheet
+from googlexport.report.requests import ExportEventReportsRequest
+from googlexport.report.exporter import ReportExporter
 
 from queue import Queue, Empty
+from typing import Callable
 
 import asyncio
 
@@ -14,7 +17,7 @@ class ExportService:
         if not isinstance(spreadsheetId, str):
             raise ValueError("spreadsheetId must be a string")
         
-        if not issubclass(storage, ExporterRepository):
+        if not isinstance(storage, ExporterRepository):
             raise ValueError("storage must be an instance of ExporterRepository")
         
         self._googleAcc = googleAcc
@@ -31,6 +34,11 @@ class ExportService:
         
         self._exportRequests.put(request)
         self._startJob()
+    
+    async def Start(self):
+        self._jobEvent.clear()
+        self._exportRequest = Queue()
+        await self._mainCycle()
     
     async def _startJob(self):
         self._jobEvent.set()
@@ -55,17 +63,12 @@ class ExportService:
             await self._taskDone(request._callback, request._args, kwargs)
 
     async def _exportEvent(self, eventId: str):
-        event = self._storage.GetEvent(eventId)
-        if event is None:
-            raise ValueError(f"Event with id {eventId} does not exist")
+        exporter = ReportExporter(self._spreadsheet, self._storage)
+        await exporter.ExportEvent(UUID(eventId))
         
     async def _taskDone(self, callback: Callable[[dict], None], args: list, kwargs: dict):
         await callback(*args, **kwargs)
     
-    async def Start(self):
-        self._jobEvent.clear()
-        self._exportRequest = Queue()
-        await self._mainCycle()
-    
+   
 
     

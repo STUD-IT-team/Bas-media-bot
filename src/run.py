@@ -42,6 +42,12 @@ from middleware.agreement import AgreementMiddleware
 from notifications.NotificationService import NotificationService
 from middleware.notifications import NotificationsMiddleware
 
+
+# Google Export Service
+import googlexport.report.singleton as singleton
+from googlexport.report.repository import PostgresCredentials as SingletonPgCreds
+from utils.token import GetGoogleExportCredsEnv
+
 # Logging config options
 LOGGING_KWARGS = {
     "format": "[%(levelname)s, %(asctime)s, %(filename)s] func %(funcName)s, line %(lineno)d: %(message)s;",
@@ -55,6 +61,15 @@ async def main() -> None:
     await notifServ.AddStorage(PgRedisStorage(pgcred, redcred))
     # Один event loop
     scheduler_task = asyncio.create_task(notifServ.StartScheduler())    # Запуск планировщика в фоне
+
+    # Init google export service
+    singletonCreds = GetGoogleExportCredsEnv()
+    await singleton.__init__(
+        singletonCreds['credsFile'],
+        singletonCreds['spreadsheetId'],
+        SingletonPgCreds(**singletonCreds['pgcred']),
+    )
+
     try:
         await dp.start_polling(bot) # запуск бота в основном потоке
     finally:

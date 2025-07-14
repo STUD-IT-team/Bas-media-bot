@@ -1,4 +1,4 @@
-
+from typing import Callable
 
 class ExportEventReportsRequest:
     def __init__(self, eventId: str, callback: Callable[[dict], None], args: list, kwargs: dict):
