@@ -62,7 +62,6 @@ class GoogleSheet:
         for request in self._updateRequests:
             request._requestCallback(self, _addRequestCallback)
         
-        print(reqs)
         resp = self._spreadsheet._sheetUpdate(reqs)
         self._updateRequests = []
         return await resp

@@ -57,10 +57,8 @@ class SheetRange:
         
         if startRowOffset < 0 or startColumnOffset < 0 or endRowOffset < 0 or endColumnOffset < 0:
             raise ValueError("startRowOffset, startColumnOffset, endRowOffset and endColumnOffset must be positive or zero int")
-        
-        if startRowOffset >= self.endRow or startColumnOffset >= self.endColumn or endRowOffset >= self.endRow or endColumnOffset >= self.endColumn:
-            raise ValueError("startRowOffset, startColumnOffset, endRowOffset and endColumnOffset must be less than endRow and endColumn")
-        
+        if startRowOffset >= endRowOffset or startColumnOffset >= endColumnOffset:
+            raise ValueError("startRowOffset and startColumnOffset must be less than endRowOffset and endColumnOffset")
         subMatrix = [self._valueMatrix[i][startColumnOffset:endColumnOffset] for i in range(startRowOffset, endRowOffset)]
         return SheetRange(self._sheet, self._startRow + startRowOffset, self._startColumn + startColumnOffset, self._startRow + endRowOffset, self._startColumn + endColumnOffset, subMatrix)                                 
 
@@ -182,17 +180,60 @@ class SetSheetRangeRequest(SheetRequest):
         # Then add the request
         super()._requestCallback(googleSheet, callback)
 
+@withCreate
+class WipeSheetRangeRequest(SheetRequest):
+    def __init__(self, sheetRange: SheetRange):
+        if not isinstance(sheetRange, SheetRange):
+            raise ValueError("sheetRange must be an instance of SheetRange")
+        
+        self._sheetRange = sheetRange
 
-class WipeSheetRangeRequest(SetSheetRangeRequest):
-    def __init__(self, sheet: GoogleSheet, startRow: int, startColumn: int, endRow: int, endColumn: int):
-        r = SheetRange(sheet, startRow, startColumn, endRow, endColumn)
-        super().__init__(r)
+    def _dictRequest(self, googleSheet: GoogleSheet):
+        raise NotImplementedError
     
+    def _requestCallback(self, googleSheet: GoogleSheet, callback: Callable[[dict], None]):
+        ClearDataSheetRangeRequest.Create(self._sheetRange)._requestCallback(googleSheet, callback)
+        UnmergeSheetRangeRequest.Create(self._sheetRange)._requestCallback(googleSheet, callback)
+
 class WipeSheetRequest(WipeSheetRangeRequest):
     def __init__(self, sheet: GoogleSheet):
-        super().__init__(sheet, 0, 0, sheet.rowCount, sheet.columnCount)
+        super().__init__(SheetRange(sheet, 0, 0, sheet.rowCount, sheet.columnCount))
+
+@withCreate
+class UnmergeSheetRangeRequest(SheetRequest):
+    def __init__(self, sheetRange: SheetRange):
+        if not isinstance(sheetRange, SheetRange):
+            raise ValueError("sheetRange must be an instance of SheetRange")
+        
+        self._sheetRange = sheetRange
+    
+    def _dictRequest(self, googleSheet: GoogleSheet):
+        return {
+            'unmergeCells': {
+                'range': {
+                    'sheetId': googleSheet._id,
+                    'startRowIndex': self._sheetRange._startRow,
+                    'endRowIndex': self._sheetRange._endRow,
+                    'startColumnIndex': self._sheetRange._startColumn,
+                    'endColumnIndex': self._sheetRange._endColumn
+                },
+            }
+        }
 
 
+
+@withCreate
+class ClearDataSheetRangeRequest(SetSheetRangeRequest):
+    def __init__(self, sheetRange: SheetRange):
+        r = SheetRange(sheetRange._sheet, sheetRange._startRow, sheetRange._startColumn, sheetRange._endRow, sheetRange._endColumn)
+        super().__init__(r)
+
+@withCreate 
+class ClearDataSheetRequest(ClearDataSheetRangeRequest):
+    def __init__(self, sheet: GoogleSheet):
+        super().__init__(SheetRange(sheet, 0, 0, sheet.rowCount, sheet.columnCount))
+
+@withCreate
 class MergeSheetRangeRequest(SheetRequest):
     def __init__(self, sheetRange: SheetRange):
         if not isinstance(sheetRange, SheetRange):
@@ -203,7 +244,13 @@ class MergeSheetRangeRequest(SheetRequest):
     def _dictRequest(self, googleSheet: GoogleSheet):
         return {
             'mergeCells': {
-                'range': self._sheetRange.Address(),
+                'range': {
+                    'sheetId': googleSheet._id,
+                    'startRowIndex': self._sheetRange._startRow,
+                    'endRowIndex': self._sheetRange._endRow,
+                    'startColumnIndex': self._sheetRange._startColumn,
+                    'endColumnIndex': self._sheetRange._endColumn
+                },
                 'mergeType': 'MERGE_ALL'
             }
         }
