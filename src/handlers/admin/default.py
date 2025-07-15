@@ -6,6 +6,7 @@ from handlers.admin.event_print import AdminPrintEvents
 from handlers.admin.add_activist import TransitToAdminNewMember
 from handlers.admin.del_activist import TransitToAdminDelMember
 from handlers.admin.add_notification import TransitToAdminAddNotification
+from handlers.admin.event_export import TransitToAdminExportEvent
 
 from aiogram import F
 from aiogram import Router
@@ -56,6 +57,14 @@ async def AdminDelMember(message : Message, storage : BaseStorage, state : FSMCo
 )
 async def AdminAddNotification(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
     await TransitToAdminAddNotification(message, storage, state, logger)
+
+@AdminDefaultRouter.message(
+    AdminStates.Default,
+    F.text == AdminDefaultKeyboard.ExportButtonText,
+)
+async def AdminExport(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
+    await TransitToAdminExportEvent(message, storage, state)
+
 
 @AdminDefaultRouter.message(
     AdminStates.Default,

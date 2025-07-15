@@ -22,12 +22,14 @@ from handlers.admin.event_complete import EventCompleteRouter
 from handlers.admin.add_activist import AdminNewMemberRouter
 from handlers.admin.del_activist import AdminDelMemberRouter
 from handlers.admin.add_notification import AdminAddNotificationRouter
+from handlers.admin.event_export import AdminExportEventRouter
 
 from handlers.member.default import MemberDefaultRouter
 from handlers.member.report_adding import MemberReportAddingRouter
 
 # Utils
 from utils.token import GetBotTokenEnv, GetRedisCredEnv, GetPgCredEnv
+from utils.passbot import SetBot, PassBot
 
 # Storages
 from storage.pgredis import PgRedisStorage, PostgresCredentials, RedisCredentials
@@ -41,7 +43,6 @@ from middleware.agreement import AgreementMiddleware
 # NotificationService
 from notifications.NotificationService import NotificationService
 from middleware.notifications import NotificationsMiddleware
-
 
 # Google Export Service
 import googlexport.report.singleton as singleton
@@ -68,6 +69,7 @@ async def main() -> None:
         singletonCreds['credsFile'],
         singletonCreds['spreadsheetId'],
         SingletonPgCreds(**singletonCreds['pgcred']),
+        logger,
     )
 
     try:
@@ -104,6 +106,7 @@ if __name__ == "__main__":
     bot = Bot(token=GetBotTokenEnv(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher(storage=RedisStorage.from_url(f"redis://{redcred.user}:{redcred.password}@{redcred.host}:{redcred.port}/1"))
     
+    dp.include_router(AdminExportEventRouter)
     dp.include_router(AdminAddNotificationRouter)
     dp.include_router(AdminNewMemberRouter)
     dp.include_router(AdminDelMemberRouter)
@@ -120,6 +123,8 @@ if __name__ == "__main__":
     logging.getLogger('apscheduler').setLevel(logging.WARNING)  # Отключаем INFO-логирование от APScheduler
 
     notifServ = NotificationService(bot)
+
+    SetBot(bot)
     # asyncio.run(notifServ.AddStorage(PgRedisStorage(pgcred, redcred)))
 
     dp.update.outer_middleware(LogMiddleware(logger))

@@ -1,6 +1,8 @@
 from googlexport.report.service import ExportService
 from googlexport.report.repository import PostgresRepository, PostgresCredentials
+from googlexport.report.requests import ExportEventReportsRequest   
 from googlexport.api.client import GoogleServiceClient
+from logging import Logger
 from typing import Callable
 
 import asyncio
@@ -26,18 +28,20 @@ class Singleton:
         raise NotImplementedError
 
 class SingletonExportService(Singleton):
-    async def _init(self, serviceAccCredsFile: str, spreadsheetId: str, pgcred: PostgresCredentials):
+    async def _init(self, serviceAccCredsFile: str, spreadsheetId: str, pgcred: PostgresCredentials, logger: Logger):
         serviceAcc = GoogleServiceClient(serviceAccCredsFile)
         storage = PostgresRepository(pgcred)
-        return ExportService(serviceAcc, spreadsheetId, storage)
+        serv = ExportService(serviceAcc, spreadsheetId, storage, logger)
+        asyncio.create_task(serv.Start())
+        return serv
     
 _singletonExportService = SingletonExportService()
 
-async def __init__(serviceAccCredsFile: str, spreadsheetId: str, pgcred: PostgresCredentials):
-    return await _singletonExportService(serviceAccCredsFile, spreadsheetId, pgcred)
+async def __init__(serviceAccCredsFile: str, spreadsheetId: str, pgcred: PostgresCredentials, logger: Logger):
+    return await _singletonExportService(serviceAccCredsFile, spreadsheetId, pgcred, logger)
 
-async def AddExportEventRequest(eventId: str, callback: Callable[[dict], None], args: list, kwargs: dict):
-    return await _singletonExportService().AddExportRequest(ExportEventReportsRequest(eventId, callback, args, kwargs))
+async def AddExportEventRequest(request: ExportEventReportsRequest):
+    return await (await _singletonExportService()).AddExportRequest(request)
 
 
 
