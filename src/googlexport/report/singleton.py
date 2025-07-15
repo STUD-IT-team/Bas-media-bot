@@ -6,6 +6,7 @@ from logging import Logger
 from typing import Callable
 
 import asyncio
+import threading
 
 class NotInitializedError(Exception):
     pass
@@ -27,15 +28,18 @@ class Singleton:
     async def _init(self, *args, **kwargs):
         raise NotImplementedError
 
-class SingletonExportService(Singleton):
+class SingletonThreadedExportService(Singleton):
     async def _init(self, serviceAccCredsFile: str, spreadsheetId: str, pgcred: PostgresCredentials, logger: Logger):
         serviceAcc = GoogleServiceClient(serviceAccCredsFile)
         storage = PostgresRepository(pgcred)
         serv = ExportService(serviceAcc, spreadsheetId, storage, logger)
-        asyncio.create_task(serv.Start())
+
+        thread = threading.Thread(target=asyncio.run, args=(serv.Start(),))
+        thread.start()
+
         return serv
-    
-_singletonExportService = SingletonExportService()
+        
+_singletonExportService = SingletonThreadedExportService()
 
 async def __init__(serviceAccCredsFile: str, spreadsheetId: str, pgcred: PostgresCredentials, logger: Logger):
     return await _singletonExportService(serviceAccCredsFile, spreadsheetId, pgcred, logger)

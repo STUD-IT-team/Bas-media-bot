@@ -12,6 +12,7 @@ from queue import Queue, Empty
 from typing import Callable
 
 import asyncio
+import threading
 
 class ExportService:
     KwargsExceptionName = 'exception'
@@ -33,9 +34,9 @@ class ExportService:
         self._storage = storage
         self._spreadsheet = GoogleSpreadsheet(self._googleAcc, self._spreadsheetId)
         self._logger = logger
+        self._was_started = threading.Event()
 
         self._exportRequests = Queue()
-        self._logger.info("Init export service")  
     
     async def AddExportRequest(self, request: ExportEventReportsRequest):
         if not isinstance(request, ExportEventReportsRequest):
@@ -44,19 +45,20 @@ class ExportService:
         self._exportRequests.put(request)
     
     async def Start(self):
+        if self._was_started.is_set():
+            raise ValueError("Service was already initialized")
+        
+        self._was_started.set()
         self._logger.info("Start export service")
-        self._exportRequest = Queue()
         await self._mainCycle()
     
+    # should be called from a separate thread/proccess as it will blocked on the queue
     async def _mainCycle(self):
         self._logger.info("Start main cycle")
         while True:
-            try:
-                request = self._exportRequests.get_nowait()
-            except Empty:
-                await asyncio.sleep(self.SleepSeconds)
-                continue
-            
+            # puts thread into uninterruptable sleep
+            # should think about using other synchronization mechanism with queue
+            request = self._exportRequests.get(block=True, timeout=None)
             exportException = None
             try:
                 await self._exportEvent(request._eventId)

@@ -20,11 +20,15 @@ import googlexport.report.singleton as singleton
 
 from utils.passbot import PassBot
 
+import asyncio
+
 async def TransitToAdminExportEvent(message: Message, storage : BaseStorage, state: FSMContext):
     events = storage.GetEvents()
     await state.set_state(AdminEventExportStates.ChoosingEvent)
     await message.answer("Выберите мероприятие для экспорта", reply_markup=ChooseEventKeyboard(events).Create())
 
+
+SERVICE_CALLBACK_TIMEOUT = 60
 
 AdminExportEventRouter = Router()
 
@@ -47,12 +51,31 @@ async def AdminExportEvent(message: Message, storage : BaseStorage, state: FSMCo
         await TransitToAdminDefault(message=message, state=state, admin=storage.GetAdminByChatID(message.chat.id))
         return
     
-    args = [message.chat.id, logger, event]
+    args = []
     kwargs = {}
-    req = ExportEventReportsRequest(event.ID, EventExportCallback, args, kwargs)
+
+    # Think about using threding.Event
+    doneEvent = asyncio.Event()
+    async def doneCallback(*args, **dictargs):
+        nonlocal kwargs
+        # passed to request kwargs + kwargs from service
+        kwargs = dictargs
+        doneEvent.set()
+
+    req = ExportEventReportsRequest(event.ID, doneCallback, args, kwargs)
     await singleton.AddExportEventRequest(req)
     await message.answer(f"Запрос на экспорт мероприятия {event.Name} создан, ожидайте ответа")
     await TransitToAdminDefault(message=message, state=state, admin=storage.GetAdminByChatID(message.chat.id))
+    
+    try:
+        await asyncio.wait_for(doneEvent.wait(), timeout=SERVICE_CALLBACK_TIMEOUT)
+    except asyncio.TimeoutError:
+        await message.answer("Время ожидания ответа от сервиса экспорта истекло. Возможно произошла ошибка сервиса")
+        logger.error(f"Timeout while waiting for export event response")
+        return
+
+    # as bot works in current event loop, we must call it methods from this event loop
+    await EventExportCallback(message.chat.id, logger, event, **kwargs)
 
 @PassBot
 async def EventExportCallback(chatID: int, logger: Logger, event: Event, **kwargs):
@@ -64,8 +87,11 @@ async def EventExportCallback(chatID: int, logger: Logger, event: Event, **kwarg
 
     # На подумать
     b = kwargs["_bot"]
-    await b.send_message(chat_id=chatID, text=f"Мероприятие {event.Name} успешно экспортировано!")
-    if ExportService.KwargsSpreadsheetUrl in kwargs:
-        spreadsheetUrl = kwargs[ExportService.KwargsSpreadsheetUrl]
-        await b.send_message(chat_id=chatID, text=f"Ссылка на экспортированный документ: {spreadsheetUrl}")
+    async def _sendMessage():
+        await b.send_message(chat_id=chatID, text=f"Мероприятие {event.Name} успешно экспортировано!")
+        if ExportService.KwargsSpreadsheetUrl in kwargs:
+            spreadsheetUrl = kwargs[ExportService.KwargsSpreadsheetUrl]
+            await b.send_message(chat_id=chatID, text=f"Ссылка на экспортированный документ: {spreadsheetUrl}")
+    
+    asyncio.create_task(_sendMessage())
 
