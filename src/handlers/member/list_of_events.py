@@ -10,7 +10,7 @@ from handlers.usertransition import TransitToMemberDefault
 async def getListOfEvents(message: Message, state: FSMContext, storage: BaseStorage):
     try:
         activist = storage.GetActivistByChatID(message.chat.id)
-        events = storage.GetEventsByActivistID(activist.ID)
+        events = storage.GetActiveEventsByActivistID(activist.ID)
     except:
         await message.answer("Ошибка при получении списка ваших мероприятий")
         raise
