@@ -47,13 +47,13 @@ class AuthMiddleware(BaseMiddleware):
             await TransitToUnauthorized(message=message, state=state)
             raise UnauthorizedError()
 
-        elif admin is None and (userType is None or userType != "activist"):
+        elif (admin is None or not admin.Valid) and (userType is None or userType != "activist"):
             await message.answer("Ваш статус поменялся")
             await TransitToMemberDefault(message=message, state=state, activist=activist)
             logger.info(f"{message.chat.id}:{message.chat.username} changed status to activist")
             return
 
-        elif admin is not None and (userType is None or userType != "admin"):
+        elif admin is not None and admin.Valid and (userType is None or userType != "admin"):
             await message.answer("Ваш статус поменялся")
             await TransitToAdminDefault(message=message, state=state, admin=admin)
             logger.info(f"{message.chat.id}:{message.chat.username} changed status to admin")
