@@ -105,7 +105,7 @@ async def AdminEnterVideoCount(message: Message, storage: BaseStorage, state: FS
         await TransitToAdminDefault(message=message, state=state, admin=admin)
         raise Exception("No valid activists")
 
-    keyb = MemberChoosingCancelKeyboard(acts)
+    keyb = MemberChoosingCancelKeyboard(acts, withStopButton=False)
     await state.update_data(data)
     await state.set_state(AdminEventCreatingStates.ChoosingChief)
     await message.answer(f"Выберите главного активиста", reply_markup=keyb.Create())
