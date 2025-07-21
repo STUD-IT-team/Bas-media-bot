@@ -76,7 +76,6 @@ CREATE TABLE IF NOT EXISTS report (
   CONSTRAINT event_member_id_notnull CHECK (event_member_id IS NOT NULL),
   CONSTRAINT event_member_id_fkey FOREIGN KEY (event_member_id) REFERENCES event_member (id),
   CONSTRAINT url_notnull CHECK (url IS NOT NULL),
-  CONSTRAINT url_type_notnull CHECK (url_type IS NOT NULL),
   CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL)
 );
 
