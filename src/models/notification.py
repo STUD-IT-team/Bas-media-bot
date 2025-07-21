@@ -10,6 +10,7 @@ class TypeNotif(StrEnum):
     ASSIGNMENT = "assignment"
     EVENT_REMOVE = "event_remove"
     ACTIVIST_DELETE = "activist_delete"
+    ACTIVIST_ADD = "activist_add"
 
 class BaseNotification:
     pass
@@ -137,4 +138,15 @@ class ActivistDeleteNotif(BaseNotification):
     def __str__(self):
         return f"ActivistDeleteNotif(id={str(self.ID)[:4]}, text={self.Text[:15]}, chats={self.ChatIDs}, time={self.NotifyTime})"
     
+class ActivistAddNotif(BaseNotification):
+    TYPE = TypeNotif.ACTIVIST_ADD
+
+    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], **kwargs):
+        super().__init__(id, text, notifyTime, ChatIDs, **kwargs)
+
+    def GetMessageText(self) -> str:
+        return f"Вы были добавлены в список активистов под именем {self.Text}"
+    
+    def __str__(self):
+        return f"ActivistAddNotif(id={str(self.ID)[:4]}, text={self.Text[:15]}, chats={self.ChatIDs}, time={self.NotifyTime})"
 

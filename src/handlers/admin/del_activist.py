@@ -15,6 +15,7 @@ from models.activist import Activist
 from models.notification import ActivistDeleteNotif
 from notifications.NotificationService import NotificationService
 
+
 AdminDelMemberRouter = Router()
 
 async def TransitToAdminDelMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
@@ -67,7 +68,7 @@ async def AdminChooseDelMember(message : Message, storage : BaseStorage, state :
     AdminMemberDeletingStates.ConfirmingDelMember,
     F.text == YesNoKeyboard.YesButtonText
 )
-async def AdminCancelAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger, notifServ : NotificationService):
+async def AdminCanceledMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger, notifServ : NotificationService):
     data = await state.get_data()
 
     def funcUpdate(act : Activist):
