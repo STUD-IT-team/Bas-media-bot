@@ -12,6 +12,10 @@ from logging import Logger
 from keyboards.default.admin import CancelAddMemberKeyboard
 import re
 from uuid import UUID, uuid4 
+from datetime import datetime
+from models.notification import ActivistAddNotif
+from models.activist import Activist
+from notifications.NotificationService import NotificationService
 
 AdminNewMemberRouter = Router()
 
@@ -49,7 +53,7 @@ async def AdminEnteringId(message : Message, storage : BaseStorage, state : FSMC
         return
     
     activist = storage.GetActivistByTgUserID(tguser.ID)
-    if activist:
+    if activist and activist.Valid:
         await message.answer(f"Пользователь с ником @{tguser.Username} уже добавлен, его зовут {activist.Name}.")
         admin = storage.GetAdminByChatID(message.chat.id)
         await TransitToAdminDefault(message=message, state=state, admin=admin)
@@ -63,12 +67,30 @@ async def AdminEnteringId(message : Message, storage : BaseStorage, state : FSMC
 
 
 @AdminNewMemberRouter.message(AdminNewMemberStates.EnteringName)
-async def AdminEnteringName(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
+async def AdminEnteringName(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger, notifServ : NotificationService):
     data = await state.get_data()
     data["acname"] = message.text
 
-    storage.PutActivist(UUID(data["tgID"]), data["acname"])
+    activist = storage.GetActivistByTgUserID(UUID(data["tgID"]))
+    if activist is None:
+        storage.PutActivist(UUID(data["tgID"]), data["acname"])
+    elif not activist.Valid:
+        def funcUpdate(act : Activist):
+            act.Valid = True
+            act.Name = data["acname"]
+            return act
+        
+        storage.UpdateValidActivist(activist.ID, funcUpdate)
+
     await message.answer(f"Пользователь {data["acname"]} добавлен.")
+
+    notif = ActivistAddNotif(
+        id=uuid4(), 
+        text=data["acname"],
+        notifyTime=datetime.now(),
+        ChatIDs=[activist.ChatID],
+    )
+    await notifServ.AddNotification(notif)
 
     admin = storage.GetAdminByChatID(message.chat.id)
     await TransitToAdminDefault(message=message, state=state, admin=admin)

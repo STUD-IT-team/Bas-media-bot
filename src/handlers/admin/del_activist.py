@@ -9,8 +9,12 @@ from logging import Logger
 from keyboards.activist.choosing import MemberChoosingKeyboard
 from keyboards.confirmation.yesno import YesNoKeyboard
 import re
-from uuid import UUID
+from uuid import UUID, uuid4
+from datetime import datetime
 from models.activist import Activist
+from models.notification import ActivistDeleteNotif
+from notifications.NotificationService import NotificationService
+
 
 AdminDelMemberRouter = Router()
 
@@ -56,7 +60,7 @@ async def AdminChooseDelMember(message : Message, storage : BaseStorage, state :
     data["name_ActToDel"] = act.Name
     data["username_ActToDel"] = act.Username
     await state.update_data(data)
-    await message.answer(f"Выуверены что хотите удалить пользователя {act.Name} ( @{act.Username} )?", 
+    await message.answer(f"Вы уверены что хотите удалить пользователя {act.Name} ( @{act.Username} )?", 
                 reply_markup=YesNoKeyboard.Create())
     return 
 
@@ -64,15 +68,26 @@ async def AdminChooseDelMember(message : Message, storage : BaseStorage, state :
     AdminMemberDeletingStates.ConfirmingDelMember,
     F.text == YesNoKeyboard.YesButtonText
 )
-async def AdminCancelAddMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger):
+async def AdminCanceledMember(message : Message, storage : BaseStorage, state : FSMContext, logger : Logger, notifServ : NotificationService):
     data = await state.get_data()
 
     def funcUpdate(act : Activist):
         act.Valid = False
         return act
 
+    activist = storage.GetActivistByID(UUID(data["id_ActToDel"]))
+
     storage.UpdateValidActivist(UUID(data["id_ActToDel"]), funcUpdate)
     await message.answer(f"Пользователь {data["name_ActToDel"]} ({data["username_ActToDel"]}) был удален")
+
+    # Notification about deleted user
+    notif = ActivistDeleteNotif(
+        id=uuid4(), 
+        text=None,
+        notifyTime=datetime.now(),
+        ChatIDs=[activist.ChatID],
+    )
+    await notifServ.AddNotification(notif)
 
     act = storage.GetAdminByChatID(message.chat.id)
     await TransitToAdminDefault(message=message, state=state, admin=act)

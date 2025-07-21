@@ -9,6 +9,8 @@ class TypeNotif(StrEnum):
     INFO = "info"
     ASSIGNMENT = "assignment"
     EVENT_REMOVE = "event_remove"
+    ACTIVIST_DELETE = "activist_delete"
+    ACTIVIST_ADD = "activist_add"
 
 class BaseNotification:
     pass
@@ -35,6 +37,11 @@ class NotifRegistryBase(type):
         )
 
 
+# Домены уведомлений нужно будет переписать
+# В базовом уведомлении максимум должно время, ид и люди, которым отправить
+# Для каждого класса уведомлений свой конструктор и метод воссоздания (когда уведомление когда-то было инициализировано и сейчас получается из репозитория)
+# На уровне БД маппер, который по типу уведомлений умеет создавать их
+# Вероятно придётся добавить в бд поле метаданных, где данные будут свои для каждого типа
 class BaseNotification(metaclass=NotifRegistryBase):
     TYPE = None
 
@@ -46,9 +53,6 @@ class BaseNotification(metaclass=NotifRegistryBase):
 
     def GetMessageText(self) -> str:
         """Возвращает текст сообщения (возможно сгенерированного по шаблону)"""
-        raise NotImplementedError
-    
-    def GetEventID(self) -> UUID:
         raise NotImplementedError
     
     def __str__(self):
@@ -120,5 +124,29 @@ class InfoNotif(BaseNotification):
     
     def __str__(self):
         return f"InfoNotif(id={str(self.ID)[:4]}, text={self.Text[:15]}, chats={self.ChatIDs}, time={self.NotifyTime})"
+
+
+class ActivistDeleteNotif(BaseNotification):
+    TYPE = TypeNotif.ACTIVIST_DELETE
+
+    def __init__(self, id: UUID, text: str, notifyTime: datetime, ChatIDs: list[int], **kwargs):
+        super().__init__(id, text, notifyTime, ChatIDs, **kwargs)
+
+    def GetMessageText(self) -> str:
+        return f"Вы были удалены из списка активистов"
     
+    def __str__(self):
+        return f"ActivistDeleteNotif(id={str(self.ID)[:4]}, text={self.Text[:15]}, chats={self.ChatIDs}, time={self.NotifyTime})"
+    
+class ActivistAddNotif(BaseNotification):
+    TYPE = TypeNotif.ACTIVIST_ADD
+
+    def __init__(self, id: UUID , text: str, notifyTime: datetime, ChatIDs: list[int], **kwargs):
+        super().__init__(id, text, notifyTime, ChatIDs, **kwargs)
+
+    def GetMessageText(self) -> str:
+        return f"Вы были добавлены в список активистов под именем {self.Text}"
+    
+    def __str__(self):
+        return f"ActivistAddNotif(id={str(self.ID)[:4]}, text={self.Text[:15]}, chats={self.ChatIDs}, time={self.NotifyTime})"
 
