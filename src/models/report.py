@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from enum import Enum
 from uuid import UUID, uuid4
 from models.activist import Activist
@@ -12,12 +12,13 @@ class ReportType(str, Enum):
     
 
 class Report(BaseModel):
-    ID : UUID = uuid4()
+    ID : UUID = Field(default_factory=lambda: uuid4())
     EventID: UUID
     Event: Optional[Event] = None
     Type : ReportType
     URL : str
     Activist : Activist
-    CreatedAt : datetime = datetime.now()
+    CreatedAt : datetime = Field(default_factory=lambda: datetime.now())
+
 
 
