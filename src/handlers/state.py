@@ -46,3 +46,6 @@ class AdminAddNotificationStates(StatesGroup):
     EnteringTime = State()
     EnteringUsers = State()
     Confirmation = State()
+
+class AdminEventExportStates(StatesGroup):
+    ChoosingEvent = State()

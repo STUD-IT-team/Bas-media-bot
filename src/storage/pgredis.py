@@ -261,6 +261,36 @@ class PgRedisStorage(BaseStorage):
         self.conn.commit()
         cur.close()
 
+    def GetEvents(self) -> list[Event]:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("""
+            SELECT id, evname, evdate, place, photo_amount, video_amount, created_by, created_at
+            FROM event
+        """)
+
+        rows = cur.fetchall()
+        cur.close()
+        events = []
+        for row in rows:
+            eventID = UUID(hex=row['id'])
+            chief = self.getEventChief(eventID)
+            activists = self.getEventMembers(eventID)
+            event = Event(
+                ID = eventID,
+                Name=row['evname'], 
+                Date=row['evdate'], 
+                Place=row['place'],
+                PhotoCount=row['photo_amount'], 
+                VideoCount=row['video_amount'], 
+                Chief=chief, 
+                Activists=activists,
+                CreatedAt=row['created_at'],
+                CreatedBy=UUID(hex=row['created_by']),
+            )
+            events.append(event)
+        
+        return events
+
 
     def GetActiveEvents(self) -> list[Event]:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
@@ -320,6 +350,34 @@ class PgRedisStorage(BaseStorage):
             )
         """, (name,))
 
+        row = cur.fetchone()
+        cur.close()
+        if row:     
+            eventID = UUID(hex=row['id'])
+            chief = self.getEventChief(eventID)
+            activists = self.getEventMembers(eventID)
+        
+            return Event(
+                ID=eventID,
+                Name=row['evname'],
+                Date=row['evdate'],
+                Place=row['place'],
+                PhotoCount=row['photo_amount'],
+                VideoCount=row['video_amount'],
+                Chief=chief,
+                Activists=activists,
+                CreatedAt=row['created_at'],
+                CreatedBy=UUID(hex=row['created_by']),
+            )
+        return None
+    
+    def GetEventByName(self, name: str) -> Event:
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("""
+            SELECT id, evname, evdate, place, photo_amount, video_amount, created_by, created_at
+            FROM event
+            WHERE evname = %s
+        """, (name,))
         row = cur.fetchone()
         cur.close()
         if row:     

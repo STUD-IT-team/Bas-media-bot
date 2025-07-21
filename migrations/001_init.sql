@@ -42,9 +42,9 @@ CREATE TABLE IF NOT EXISTS event (
   CONSTRAINT evdate_notnull CHECK (evdate IS NOT NULL),
   CONSTRAINT place_notnull CHECK (place IS NOT NULL),
   CONSTRAINT photo_amount_notnull CHECK (photo_amount IS NOT NULL),
-  CONSTRAINT photo_amount_positive CHECK (photo_amount > 0),
+  CONSTRAINT photo_amount_positive CHECK (photo_amount >= 0),
   CONSTRAINT video_amount_notnull CHECK (video_amount IS NOT NULL),
-  CONSTRAINT video_amount_positive CHECK (video_amount > 0),
+  CONSTRAINT video_amount_positive CHECK (video_amount >= 0),
   CONSTRAINT created_by_notnull CHECK (created_by IS NOT NULL),
   CONSTRAINT created_by_fkey FOREIGN KEY (created_by) REFERENCES tg_admin (id),
   CONSTRAINT created_at_notnull CHECK (created_at IS NOT NULL)

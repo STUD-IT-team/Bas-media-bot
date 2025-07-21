@@ -9,15 +9,11 @@ from aiogram.types import Message
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 
-
-
-
 async def TransitToMemberDefault(message: Message, state: FSMContext, activist: Activist):
     await state.clear()
     await state.set_data({"user-type": "activist"})
     await state.set_state(MemberStates.Default)
     await message.answer(f"Активист, {activist.Name}! Что хотите сделать?", reply_markup=MemberDefaultKeyboard.Create())
-
 
 async def TransitToAdminDefault(message: Message, state: FSMContext, admin: Admin):
     await state.clear()
