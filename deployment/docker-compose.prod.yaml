@@ -12,7 +12,7 @@ services:
         restart: unless-stopped 
         networks:
             - bas-redis-net
-            - ${POSTGRES_NET}
+            - postgres-net
         volumes:
             - ../deployment/bot.env:/app/deployment/bot.env
 
@@ -24,7 +24,7 @@ services:
             context: ../migrations
             dockerfile: Dockerfile
         networks:
-            - ${POSTGRES_NET}
+            - postgres-net
     
     bas-redis:
         container_name: bas-redis
@@ -40,7 +40,9 @@ services:
         networks:
             - bas-redis-net
 
+
 networks:
-    ${POSTGRES_NET}:
+    postgres-net:
         external: true
+        name: ${POSTGRES_NET}
     bas-redis-net:
