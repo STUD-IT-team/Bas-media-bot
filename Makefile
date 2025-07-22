@@ -3,7 +3,8 @@ SHELL:=/bin/bash
 DOCKER:=docker
 COMPOSE_DEV:=deployment/docker-compose.dev.yaml
 COMPOSE_PROD:=deployment/docker-compose.prod.yaml
-COMPOSE_ENV:=deployment/compose.env
+COMPOSE_ENV_DEV:=deployment/compose.dev.env
+COMPOSE_ENV_PROD:=deployment/compose.prod.env
 DEV_CONTAINERS:=db-bas migrator-bas redis-bas
 PROD_CONTAINERS:=bas-bot bas-migrator bas-redis
 
@@ -19,6 +20,10 @@ define compose_containers
 	$(if $(findstring dev-,$(1)),$(DEV_CONTAINERS),$(PROD_CONTAINERS))
 endef
 
+define compose_env 
+	$(if $(findstring dev-,$(1)),$(COMPOSE_ENV_DEV),$(COMPOSE_ENV_PROD))
+endef
+
 start:
 	source $(VENVDIR)/bin/activate && \
 	python3 ./src/run.py --env-file $(APPENV)
@@ -28,16 +33,16 @@ init-venv:
 	$(VENVDIR)/bin/pip install -r $(REQUIREMENTS)
 
 %up:
-	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d $(call compose_containers,$@)
+	$(DOCKER) compose --env-file $(call compose_env,$@) -f $(call compose_file,$@) up -d $(call compose_containers,$@)
 
 %upd:
-	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d --build $(call compose_containers,$@)
+	$(DOCKER) compose --env-file $(call compose_env,$@) -f $(call compose_file,$@) up -d --build $(call compose_containers,$@)
 
 %upda: 
-	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up --build $(call compose_containers,$@)
+	$(DOCKER) compose --env-file $(call compose_env,$@) -f $(call compose_file,$@) up --build $(call compose_containers,$@)
 
 %down:
-	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) down 
+	$(DOCKER) compose --env-file $(call compose_env,$@) -f $(call compose_file,$@) down
 
 .PHONY: example
 
