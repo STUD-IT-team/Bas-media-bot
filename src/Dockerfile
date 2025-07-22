@@ -1,14 +1,14 @@
 FROM python:3.13-alpine
 
-RUN rm -rf /opt/venv
-RUN python -m venv /opt/venv
-RUN source /opt/venv/bin/activate
+RUN apk add --no-cache make bash && \
+    mkdir -p /app && \
+    rm -rf /opt/venv
 
-COPY ./src/requirements.txt .
-COPY ./src/ .
+WORKDIR /app
 
-RUN pip install -r requirements.txt
+COPY ./src/ ./src/
+COPY Makefile .
 
-EXPOSE 3012
+RUN make init-venv
 
-CMD ["python3.13", "./run.py"]
+CMD ["make", "start"]

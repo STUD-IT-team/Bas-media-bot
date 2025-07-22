@@ -1,0 +1,46 @@
+services:
+    bas-bot:
+        container_name: bas-bot
+        depends_on: 
+            bas-migrator:
+                condition: service_completed_successfully
+            bas-redis:
+                condition: service_started
+        build:
+            context: ../
+            dockerfile: ./src/Dockerfile
+        restart: unless-stopped 
+        networks:
+            - bas-redis-net
+            - ssu-postgres-net
+        volumes:
+            - ../deployment/bot.env:/app/deployment/bot.env
+
+    bas-migrator:
+        container_name: bas-migrator
+        env_file:
+            - migrator.env
+        build:
+            context: ../migrations
+            dockerfile: Dockerfile
+        networks:
+            - ssu-postgres-net
+    
+    bas-redis:
+        container_name: bas-redis
+        hostname: bas-redis
+        restart: unless-stopped
+        ports:
+            - "26379:6379"
+        build:
+            context: ./redis
+            dockerfile: ./Dockerfile
+        env_file:
+            - redis.env
+        networks:
+            - bas-redis-net
+
+networks:
+    ssu-postgres-net:
+        external: true
+    bas-redis-net:
