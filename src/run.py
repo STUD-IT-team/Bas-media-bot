@@ -1,5 +1,6 @@
 # Miscellaneous
 import os
+import time
 import sys
 import asyncio
 import redis
@@ -59,6 +60,8 @@ LOGGING_KWARGS = {
 
 
 async def main() -> None:
+    os.environ['TZ'] = 'Europe/Moscow'
+    time.tzset()
     await notifServ.AddStorage(PgRedisStorage(pgcred, redcred))
     # Один event loop
     scheduler_task = asyncio.create_task(notifServ.StartScheduler())    # Запуск планировщика в фоне

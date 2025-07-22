@@ -14,6 +14,7 @@ services:
             - bas-redis-net
             - postgres-net
         volumes:
+            - ../credentials:/app/credentialss
             - ../deployment/bot.env:/app/deployment/bot.env
 
     bas-migrator:
